@@ -1,15 +1,12 @@
 #include <Servo.h>
-#include "SteeringEngine.h"
+#include "Smart.h"
 
-SteeringEngine servo;
+SmartCar car;
      
 void setup() { 
-  servo.init();
+  car.initSmartCar();
 } 
   
 void loop() { 
-    servo.moveOne(180);
-    servo.moveOne(0);
-    servo.moveTwo(180);
-    servo.moveTwo(0);
+    car.goForward();
 }
