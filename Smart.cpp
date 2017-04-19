@@ -30,9 +30,9 @@ void SmartCar::initSmartCar(void){
     this->logs("MSG: servo ok");
     //设置马达转速
     motor1.setSpeed(MOTOR_SPEED);
-    motor1.setSpeed(MOTOR_SPEED);
-    motor1.setSpeed(MOTOR_SPEED);
-    motor1.setSpeed(MOTOR_SPEED);
+    motor2.setSpeed(MOTOR_SPEED);
+    motor3.setSpeed(MOTOR_SPEED);
+    motor4.setSpeed(MOTOR_SPEED);
     this->logs("MSG: motor ok");
 }
 

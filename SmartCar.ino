@@ -1,12 +1,12 @@
-#include <Servo.h>
 #include "Smart.h"
 
 SmartCar car;
-     
-void setup() { 
+
+void setup(){
+  delay(3000);
   car.initSmartCar();
-} 
-  
-void loop() { 
-    car.goForward();
+}
+
+void loop(){
+  car.goForward();
 }
