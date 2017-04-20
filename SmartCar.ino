@@ -1,24 +1,32 @@
+#include <Servo.h> 
 #include "Smart.h"
-#include "IRremote.h"
 
 SmartCar car;
 
-int RECV_PIN = 13; // 红外一体化接收头连接到Arduino 11号引脚
- 
-IRrecv irrecv(RECV_PIN);
- 
-decode_results results; // 用于存储编码结果的对象
-
 void setup(){
-  delay(3000);
-  car.initSmartCar();
-
-   irrecv.enableIRIn(); //初始化红外遥控
+      delay(2000);
+      car.initSmartCar();
 }
 
 void loop(){
-   if (irrecv.decode(&results)) {
-        Serial.println(results.value);
-        irrecv.resume(); // 接收下一个编码
-   }
+  delay(2000);
+  //前进
+  car.goForward();
+  delay(2000);  
+  //后退
+  car.goBack();
+  delay(2000); 
+  //左转
+  car.goTurnLeft();
+  delay(2000);
+  //右转
+  car.goTurnRight();
+  delay(2000);
+  //停止
+  car.stopMotor();
+  delay(2000);
+  //相机水平转动
+  car.cameraVTurn(180);
+  //相机上下转动
+  car.cameraHTurn(180);
 }

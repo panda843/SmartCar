@@ -26,7 +26,7 @@ void SmartCar::initSmartCar(void){
     Serial.println();
     //设置舵机串口
     this->servo1.attach(STEERING_ONE);
-    this->servo1.attach(STEERING_TWO);
+    this->servo2.attach(STEERING_TWO);
     this->logs("MSG: servo ok");
     //设置马达转速
     motor1.setSpeed(MOTOR_SPEED);
@@ -95,12 +95,32 @@ void SmartCar::goTurnRight(void){
  * 相机水平转动
  */
 void SmartCar::cameraHTurn(int number){
-    this->logs("MSG: servo horizontal move "+number);
+    this->logs("MSG: servo horizontal move ");
+    for(this->pos1 = 0; this->pos1 < 180; this->pos1 += 1)  // 从0度到180度运动 
+    {                                                     // 每次步进一度
+      servo1.write(this->pos1);        // 指定舵机转向的角度
+      delay(20);                       // 等待15ms让舵机到达指定位置
+    } 
+    for(this->pos1 = 180; this->pos1>=1; this->pos1-=1)   //从180度到0度运动  
+    {                                
+      servo1.write(this->pos1);         // 指定舵机转向的角度 
+      delay(20);                        // 等待15ms让舵机到达指定位置 
+    } 
 }
 
 /**
  * 相机上下转动
  */
 void SmartCar::cameraVTurn(int number){
-    this->logs("MSG: servo Vertical move "+number);
+    this->logs("MSG: servo Vertical move ");
+    for(this->pos2 = 0; this->pos2 < 180; this->pos2 += 1)  // 从0度到180度运动 
+    {                                                     // 每次步进一度
+      servo2.write(this->pos2);        // 指定舵机转向的角度
+      delay(20);                       // 等待15ms让舵机到达指定位置
+    } 
+    for(this->pos2 = 180; this->pos2>=1; this->pos2-=1)   //从180度到0度运动  
+    {                                
+      servo2.write(this->pos2);         // 指定舵机转向的角度 
+      delay(20);                        // 等待15ms让舵机到达指定位置 
+    } 
 }

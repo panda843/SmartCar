@@ -30,6 +30,7 @@ class SmartCar{
         void logs(const char* log);
     private:
         Servo servo1,servo2;  
+        int pos1=0,pos2=0;
 };
 
 #endif
