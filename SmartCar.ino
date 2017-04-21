@@ -27,6 +27,9 @@ void loop(){
   delay(2000);
   //相机水平转动
   car.cameraVTurn(180);
+  car.cameraVTurn(0);
+  delay(2000);
   //相机上下转动
   car.cameraHTurn(180);
+  car.cameraHTurn(0);
 }

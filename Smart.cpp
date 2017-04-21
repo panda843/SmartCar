@@ -93,19 +93,22 @@ void SmartCar::goTurnRight(void){
 
 /**
  * 相机水平转动
+ * @params int number 转动角度 0-180
  */
 void SmartCar::cameraHTurn(int number){
     this->logs("MSG: servo horizontal move ");
-    for(this->pos1 = 0; this->pos1 < 180; this->pos1 += 1)  // 从0度到180度运动 
-    {                                                     // 每次步进一度
-      servo1.write(this->pos1);        // 指定舵机转向的角度
-      delay(20);                       // 等待15ms让舵机到达指定位置
-    } 
-    for(this->pos1 = 180; this->pos1>=1; this->pos1-=1)   //从180度到0度运动  
-    {                                
-      servo1.write(this->pos1);         // 指定舵机转向的角度 
-      delay(20);                        // 等待15ms让舵机到达指定位置 
-    } 
+    int current_pos = servo1.read();
+    if(current_pos < number){
+        for(this->pos1 = current_pos; this->pos1 < number; this->pos1 += 1) {
+          servo1.write(this->pos1);
+          delay(15);
+        }
+    }else{
+        for(this->pos1 = current_pos; this->pos1>=number; this->pos1-=1){                                
+          servo1.write(this->pos1);
+          delay(15);
+        } 
+    }
 }
 
 /**
@@ -113,14 +116,16 @@ void SmartCar::cameraHTurn(int number){
  */
 void SmartCar::cameraVTurn(int number){
     this->logs("MSG: servo Vertical move ");
-    for(this->pos2 = 0; this->pos2 < 180; this->pos2 += 1)  // 从0度到180度运动 
-    {                                                     // 每次步进一度
-      servo2.write(this->pos2);        // 指定舵机转向的角度
-      delay(20);                       // 等待15ms让舵机到达指定位置
-    } 
-    for(this->pos2 = 180; this->pos2>=1; this->pos2-=1)   //从180度到0度运动  
-    {                                
-      servo2.write(this->pos2);         // 指定舵机转向的角度 
-      delay(20);                        // 等待15ms让舵机到达指定位置 
-    } 
+    int current_pos = servo2.read();
+    if(current_pos < number){
+        for(this->pos2 = current_pos; this->pos2 < number; this->pos2 += 1) {
+            servo2.write(this->pos2);
+            delay(15);
+        }
+    }else{
+        for(this->pos2 = current_pos; this->pos2>=number; this->pos2-=1){                                
+            servo2.write(this->pos2);
+            delay(15);
+        } 
+    }
 }
