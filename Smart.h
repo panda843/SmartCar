@@ -16,7 +16,9 @@
 //定义舵机3串口(超声波)
 #define STEERING_THREE A0
 //定义马达速度
-#define MOTOR_SPEED 200
+#define MOTOR_SPEED 150
+//定义马达转弯时的速度
+#define MOTOR_TURN_SPEED 100
 //定义超声波Tring引脚
 #define ULTRASONIC_TRIG A1   
 //定义超声波Echo引脚
@@ -30,7 +32,10 @@ class SmartCar{
         void cameraVTurn(int number);
         void ultrasonicVTrun(int number);
         void goTurnLeft(void);
+        void setCarSpeed(int number);
         float detectionRange();
+        float detectionRangeLeft();
+        float detectionRangeRight();
         void goTurnRight(void);
         void goForward(void);
         void goBack(void);

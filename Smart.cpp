@@ -83,10 +83,10 @@ void SmartCar::initSmartCar(void){
  */
 void SmartCar::goForward(void){
     this->logs("MSG: motor ↑");
-    motor1.run(FORWARD);
-    motor2.run(FORWARD);
-    motor3.run(FORWARD);
-    motor4.run(FORWARD);
+    motor1.run(BACKWARD);
+    motor2.run(BACKWARD);
+    motor3.run(BACKWARD);
+    motor4.run(BACKWARD);
 }
 
 /**
@@ -96,10 +96,10 @@ void SmartCar::goForward(void){
  */
 void SmartCar::goBack(void){
     this->logs("MSG: motor ↓");
-    motor1.run(BACKWARD);
-    motor2.run(BACKWARD);
-    motor3.run(BACKWARD);
-    motor4.run(BACKWARD);
+    motor1.run(FORWARD);
+    motor2.run(FORWARD);
+    motor3.run(FORWARD);
+    motor4.run(FORWARD);
 }
 
 /**
@@ -113,6 +113,13 @@ void SmartCar::stopMotor(void){
     motor2.run(RELEASE);
     motor3.run(RELEASE);
     motor4.run(RELEASE);
+}
+
+ void SmartCar::setCarSpeed(int number){
+    motor1.setSpeed(number);
+    motor2.setSpeed(number);
+    motor3.setSpeed(number);
+    motor4.setSpeed(number);
 }
 
 /**
@@ -150,18 +157,6 @@ void SmartCar::goTurnRight(void){
 void SmartCar::cameraHTurn(int number){
     this->logs("MSG: servo horizontal move ");
     this->steeringTurn(&this->servo1,&this->pos1,number);
-//    int current_pos = servo1.read();
-//    if(current_pos < number){
-//        for(this->pos1 = current_pos; this->pos1 < number; this->pos1 += 1) {
-//          servo1.write(this->pos1);
-//          delay(15);
-//        }
-//    }else{
-//        for(this->pos1 = current_pos; this->pos1>=number; this->pos1-=1){                                
-//          servo1.write(this->pos1);
-//          delay(15);
-//        } 
-//    }
 }
 
 /**
@@ -173,18 +168,6 @@ void SmartCar::cameraHTurn(int number){
 void SmartCar::cameraVTurn(int number){
     this->logs("MSG: servo Vertical move ");
     this->steeringTurn(&this->servo2,&this->pos2,number);
-//    int current_pos = servo2.read();
-//    if(current_pos < number){
-//        for(this->pos2 = current_pos; this->pos2 < number; this->pos2 += 1) {
-//            servo2.write(this->pos2);
-//            delay(15);
-//        }
-//    }else{
-//        for(this->pos2 = current_pos; this->pos2>=number; this->pos2-=1){                                
-//            servo2.write(this->pos2);
-//            delay(15);
-//        } 
-//    }
 }
 
 /**
@@ -208,19 +191,47 @@ void SmartCar::ultrasonicVTrun(int number){
  */
 void SmartCar::steeringTurn(Servo* servo, int* pos, int number){
     int current_pos = servo->read();
-    if(current_pos < number){
-        for(*pos = current_pos; *pos < number; *pos += 1) {
-            servo->write(*pos);
-            delay(15);
+    if(current_pos != number){
+        if(current_pos < number){
+            for(*pos = current_pos; *pos < number; *pos += 1) {
+                servo->write(*pos);
+                delay(15);
+            }
+        }else{
+            for(*pos = current_pos; *pos>=number; *pos-=1){                                
+                servo->write(*pos);
+                delay(15);
+            } 
         }
-    }else{
-        for(*pos = current_pos; *pos>=number; *pos-=1){                                
-            servo->write(*pos);
-            delay(15);
-        } 
-    }
+    }    
 }
 
+float SmartCar::detectionRangeLeft(){
+  this->ultrasonicVTrun(90);
+  int current_pos = 90;
+  float max_num = 0.0;
+  for(int i=90;i>=40;i-=10){
+    this->ultrasonicVTrun(i);
+    float current_number = this->detectionRange();
+    if(current_number > max_num){
+      max_num = current_number;
+    }
+  }
+  return max_num;
+}
+float SmartCar::detectionRangeRight(){
+  this->ultrasonicVTrun(90);
+  int current_pos = 90;
+  float max_number = 0.0;
+  for(int i=90;i<=130;i+=10){
+    this->ultrasonicVTrun(i);
+    float current_number = this->detectionRange();
+    if(current_number > max_number){
+      max_number = current_number;
+    }
+  }
+  return max_number;
+}
 /**
  * 超声波测距
  * @Author   DuanEnJian<backtrack843@163.com>
