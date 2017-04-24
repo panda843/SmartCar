@@ -1,6 +1,13 @@
 #include "Smart.h"
 
 /**
+ * 红外线接收器
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-04-21
+ */
+static IRrecv irrecv(INFRARED_RECEIVER);
+
+/**
  * 直流电机1
  * @Author   DuanEnJian<backtrack843@163.com>
  * @DateTime 2017-04-21
@@ -34,7 +41,7 @@ static AF_DCMotor motor4(4, MOTOR34_1KHZ);
  * @DateTime 2017-04-21
  */
 SmartCar::SmartCar(void){
-  
+    
 }
 
 /**
@@ -58,7 +65,6 @@ void SmartCar::initSmartCar(void){
     //设置通信串口
     Serial.begin(BAUD_RATE);
     this->logs("MSG: begin ok");
-    Serial.println();
     //设置舵机串口
     this->servo1.attach(STEERING_ONE);
     this->servo2.attach(STEERING_TWO);
@@ -74,8 +80,110 @@ void SmartCar::initSmartCar(void){
     pinMode(ULTRASONIC_TRIG, OUTPUT);  
     pinMode(ULTRASONIC_ECHO, INPUT);
     this->logs("MSG: ultrasonic ok");
+    //定义红外线接收器
+    irrecv.enableIRIn();
+    //设置中断，红外遥控
+    attachInterrupt(0,(void(*)())&SmartCar::remoteControl,CHANGE);
+    this->logs("MSG: infrared ok");
 }
 
+/**
+ * 设置是否启动自动模式
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-04-24
+ * @param    isEnable                         true:自动,false:红外遥控
+ */
+void SmartCar::setAutomatic(bool isEnable){
+    this->is_automatic = isEnable;
+}
+
+/**
+ * 自动运行模式
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-04-24
+ */
+void SmartCar::autoRun(void){
+    this->cameraHTurn(20);
+    this->ultrasonicVTrun(90);
+    float center = this->detectionRange();
+    if(center < 40){
+        this->stopMotor();
+        float right = this->detectionRangeRight();
+        float left = this->detectionRangeLeft();
+        this->ultrasonicVTrun(90);
+        if(left <= right){
+            this->goTurnRight();
+            for(int i=0;i<70;i++){
+                float trun_num = this->detectionRange();
+                if(trun_num < 10){
+                    this->goBack();
+                }else{
+                    this->goTurnRight();
+                }
+            }
+            return void();
+        }else{
+            this->goTurnLeft();
+            for(int i=0;i<70;i++){
+                float trun_num = this->detectionRange();
+                if(trun_num < 10){
+                    this->goBack();
+                }else{
+                    this->goTurnLeft();
+                }
+            }
+            return void();
+        }
+    }
+    this->goForward();
+}
+
+/**
+ * 红外遥控
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-04-24
+ */
+void SmartCar::remoteControl(void){
+    if(!this->is_automatic){
+        if (irrecv.decode(&this->ir_result)) {
+            Serial.println(this->ir_result.value);
+            if(this->ir_result.value == 16736925){
+                //Model
+                this->goForward();
+            }else if(this->ir_result.value == 16712445){
+                //快退
+                this->stopMotor();
+            }else if(this->ir_result.value == 16720605){
+                //播放暂停
+                this->goTurnRight();
+            }else if(this->ir_result.value == 16761405){
+                //快进
+                this->goTurnLeft();
+            }else if(this->ir_result.value == 16754775){
+                //音量减
+                this->goBack();
+            }else if(this->ir_result.value == 16769055){
+                //EQ
+                int number = this->servo2.read();
+                if(number < 180){
+                    this->cameraVTurn(number+10);
+                }else{
+                    this->cameraVTurn(number-10);
+                }
+            }else if(this->ir_result.value == 16748655){
+                //音量加
+                int number = this->servo1.read();
+                if(number < 180){
+                    this->cameraHTurn(number+10);
+                }else{
+                    this->cameraHTurn(number-10);
+                }
+            }
+            //接受下一个值
+            irrecv.resume(); 
+        }
+    }
+}
 /**
  * 小车前进
  * @Author   DuanEnJian<backtrack843@163.com>
@@ -156,7 +264,7 @@ void SmartCar::goTurnRight(void){
  */
 void SmartCar::cameraHTurn(int number){
     this->logs("MSG: servo horizontal move ");
-    this->steeringTurn(&this->servo1,&this->pos1,number);
+    this->steeringTurn(&this->servo1,number);
 }
 
 /**
@@ -167,7 +275,7 @@ void SmartCar::cameraHTurn(int number){
  */
 void SmartCar::cameraVTurn(int number){
     this->logs("MSG: servo Vertical move ");
-    this->steeringTurn(&this->servo2,&this->pos2,number);
+    this->steeringTurn(&this->servo2,number);
 }
 
 /**
@@ -178,7 +286,7 @@ void SmartCar::cameraVTurn(int number){
  */
 void SmartCar::ultrasonicVTrun(int number){
     this->logs("MSG: ultrasonic Vertical move ");
-    this->steeringTurn(&this->servo3,&this->pos3,number);
+    this->steeringTurn(&this->servo3,number);
 }
 
 /**
@@ -186,26 +294,32 @@ void SmartCar::ultrasonicVTrun(int number){
  * @Author   DuanEnJian<backtrack843@163.com>
  * @DateTime 2017-04-21
  * @param    servo                            Servo对象
- * @param    pos                              舵机当前角度 0-180
  * @param    number                           转动角度 0-180
  */
-void SmartCar::steeringTurn(Servo* servo, int* pos, int number){
+void SmartCar::steeringTurn(Servo* servo, int number){
+    //获取当前舵机角度
     int current_pos = servo->read();
     if(current_pos != number){
         if(current_pos < number){
-            for(*pos = current_pos; *pos < number; *pos += 1) {
-                servo->write(*pos);
+            for(current_pos; current_pos < number; current_pos += 1) {
+                servo->write(current_pos);
                 delay(15);
             }
         }else{
-            for(*pos = current_pos; *pos>=number; *pos-=1){                                
-                servo->write(*pos);
+            for(current_pos; current_pos>=number; current_pos-=1){                                
+                servo->write(current_pos);
                 delay(15);
             } 
         }
     }    
 }
 
+/**
+ * 超声波探测左边的距离(40-90°)
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-04-24
+ * @return   返回最远的距离
+ */
 float SmartCar::detectionRangeLeft(){
   this->ultrasonicVTrun(90);
   int current_pos = 90;
@@ -219,6 +333,13 @@ float SmartCar::detectionRangeLeft(){
   }
   return max_num;
 }
+
+/**
+ * 超声波探测右边的距离(90-130°)
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-04-24
+ * @return   返回最远的距离
+ */
 float SmartCar::detectionRangeRight(){
   this->ultrasonicVTrun(90);
   int current_pos = 90;
@@ -232,6 +353,7 @@ float SmartCar::detectionRangeRight(){
   }
   return max_number;
 }
+
 /**
  * 超声波测距
  * @Author   DuanEnJian<backtrack843@163.com>

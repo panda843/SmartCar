@@ -1,6 +1,7 @@
 #include <Servo.h>
 #include <Arduino.h>
 #include "AFMotor.h"
+#include "IRremote.h"
 
 #ifndef _SmartCar_h_
 #define _SmartCar_h_
@@ -23,6 +24,8 @@
 #define ULTRASONIC_TRIG A1   
 //定义超声波Echo引脚
 #define ULTRASONIC_ECHO A2
+//定义红外线接收器(2,3:为中断信号针脚)
+#define INFRARED_RECEIVER 2
 
 class SmartCar{
     public:
@@ -40,11 +43,27 @@ class SmartCar{
         void goForward(void);
         void goBack(void);
         void stopMotor(void);
+        void remoteControl(void);
+        void autoRun(void);
+        void setAutomatic(bool isEnable);
         void logs(const char* log);
     private:
-        Servo servo1,servo2,servo3;  
-        int pos1=0,pos2=0,pos3=0;
-        void steeringTurn(Servo* servo, int* pos, int number);
+        /**
+         * servo1 相机水平舵机
+         * servo2 相机上下舵机
+         * servo3 超声波舵机
+         */
+        Servo servo1,servo2,servo3;
+        /**
+         * 定义自动OR手动
+         * 默认自动模式
+         */
+        bool is_automatic = true;
+        /**
+         * 红外信号结构体
+         */
+        decode_results ir_result;
+        void steeringTurn(Servo* servo, int number);
 };
 
 #endif
