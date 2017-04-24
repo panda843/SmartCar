@@ -8,7 +8,7 @@
 - [x] KY-022 (1)
 - [x] SG90/TOWERPRO (3)
 ## 2.代码
-```c/c++
+```cpp
 //定义日志输出
 #define IS_DEBUG true
 //定义波特率
