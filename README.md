@@ -1,13 +1,13 @@
 # Raspberry Pi Zero W + Arduino Pro Mini 智能小车
 
-##1.硬件
+## 1.硬件
 - [x] Raspberry Pi Zero W (1)
 - [x] Arduino Pro Mini (1)
 - [x] L293D Motor Control Shield (1)
 - [x] HC-SR04 (1)
 - [x] KY-022 (1)
 - [x] SG90/TOWERPRO (3)
-##2.代码
+## 2.代码
 ```c/c++
 //定义日志输出
 #define IS_DEBUG true
