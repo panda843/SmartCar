@@ -3,6 +3,7 @@
 
 #include "Sock.h"
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
@@ -17,9 +18,8 @@ class Api{
     public:
         Api(const char* ip, unsigned int port);
         ~Api();
-        void start(void);
+        void start();
     private:
-    
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include "Sock.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
@@ -17,7 +18,7 @@ class Device{
     public:
         Device(const char* ip, unsigned int port);
         ~Device();
-        void start(void);
+        void start();
     private:
 
 };
