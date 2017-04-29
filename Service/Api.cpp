@@ -10,6 +10,8 @@ Api::~Api(){
 
 void Api::start(void){
 	time_t ticks;
+    pid_t pid;
+    int i;
 	/*忽略可能的终端信号*/
     signal(SIGTTOU,SIG_IGN);
     signal(SIGTTIN,SIG_IGN);

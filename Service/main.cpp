@@ -12,9 +12,9 @@
 #include <time.h>
 
 int main(){
-    Api api = new Api("127.0.0.1",5123);
+    Api* api = new Api("127.0.0.1",5123);
     api->start();
-    Device dev = new Device("127.0.0.1",5124);
+    Device* dev = new Device("127.0.0.1",5124);
     dev->start();
 
     delete api;
