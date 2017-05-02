@@ -1,25 +1,21 @@
 #ifndef _API_H_
 #define _API_H_
 
-#include "Sock.h"
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <signal.h>
-#include <fcntl.h>
-#include <sys/syslog.h>
-#include <sys/param.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <time.h>
+#include <event2/event.h>  
+#include <event2/http.h>  
+#include <event2/buffer.h>
 
 class Api{
     public:
         Api(const char* ip, unsigned int port);
         ~Api();
         void start();
+        friend void requestHandler(struct evhttp_request *request, void *args);
     private:
+        const char* ip;
+        unsigned int port;
+        struct evhttp* httpServer = NULL;
+        struct event_base* eventBase = NULL;
 };
 
 #endif

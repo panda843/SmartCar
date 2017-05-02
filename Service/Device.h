@@ -1,7 +1,6 @@
 #ifndef _DEVICE_H_
 #define _DEVICE_H_
 
-#include "Sock.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
