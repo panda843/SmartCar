@@ -10,17 +10,24 @@ void initDaemon(){
     chdir("/tmp");
     //重设文件创建掩模 
     umask(0);
-    //忽略SIGHLD信号
-    signal(SIGCHLD,SIG_IGN);
+    //忽略信号，终端中断 
+    signal(SIGINT,  SIG_IGN); 
+    // 连接挂断 
+    signal(SIGHUP,  SIG_IGN);
+    // 终端退出  
+    signal(SIGQUIT, SIG_IGN);  
+    // 向无读进程的管道写数据
+    signal(SIGPIPE, SIG_IGN);  
+    // 后台程序尝试写操作 
+    signal(SIGTTOU, SIG_IGN); 
+    // 后台程序尝试读操作
+    signal(SIGTTIN, SIG_IGN);
+    // 终止   
+    signal(SIGTERM, SIG_IGN); 
 }
 
 int main(){
     // pid_t pid_api,pid_dev;
-    // /*忽略可能的终端信号*/
-    // signal(SIGTTOU,SIG_IGN);
-    // signal(SIGTTIN,SIG_IGN);
-    // signal(SIGTSTP,SIG_IGN);
-    // signal(SIGHUP,SIG_IGN);
     // //创建API进程
     // if((pid_api = fork()) < 0){
     //     //创建进程失败
