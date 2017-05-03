@@ -14,7 +14,13 @@ Api::Api(const char* ip, unsigned int port){
 }
 
 Api::~Api(){
-
+    delete this->ip;
+    delete this->mysql;
+    delete this->request_action;
+    // 释放HTTP 资源
+    evhttp_free(this->httpServer);   
+    // 释放事件资源
+    event_base_free(this->eventBase);
 }
 
 char* Api::strlwr(char* str){
@@ -138,8 +144,4 @@ void Api::start(){
     evhttp_set_timeout(this->httpServer, 120);
     //  循环处理事件
     event_base_dispatch(this->eventBase);  
-    // 释放HTTP 资源
-    evhttp_free(this->httpServer);   
-    // 释放事件资源
-    event_base_free(this->eventBase);
 }
