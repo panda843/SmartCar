@@ -1,6 +1,5 @@
 #include "Api.h"
-
-
+#include "Mysql.h"
 Api* apiThisPointer;
 typedef void (Api::*pmf)(); 
 map<string, pmf> api_list; 
@@ -11,6 +10,7 @@ Api::Api(const char* ip, unsigned int port){
     strcpy(this->ip,ip);
     this->port = port;
     this->initApiList();
+    this->mysql = new Mysql();
 }
 
 Api::~Api(){
@@ -30,6 +30,7 @@ char* Api::strlwr(char* str){
 }
 
 void Api::user_login(){
+    this->mysql->exec("select * from user");
     printf("call user_login function \n");
 }
 

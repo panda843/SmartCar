@@ -3,6 +3,7 @@
 
 #include <map>
 #include <exception>
+#include "Mysql.h"
 #include <ctype.h>
 #include <string.h>
 #include <event2/event.h>  
@@ -24,6 +25,7 @@ class Api{
         char* ip;
         char* request_action;
         unsigned int port;
+        Mysql* mysql;
         struct evhttp* httpServer = NULL;
         struct event_base* eventBase = NULL;
         void getRquestAction(const char* url);
