@@ -2,16 +2,84 @@
 
 
 Api* apiThisPointer;
+typedef void (Api::*pmf)(); 
+map<string, pmf> api_list; 
 
 Api::Api(const char* ip, unsigned int port){
     apiThisPointer = this;
-    this->ip = ip;
+    this->ip = new char[strlen(ip)+1];
+    strcpy(this->ip,ip);
     this->port = port;
+    this->initApiList();
 }
 
 Api::~Api(){
 
 }
+
+char* Api::strlwr(char* str){
+    if(str == NULL)
+        return NULL;
+    char *p = str;
+    while (*p != '\0'){
+        if(*p >= 'A' && *p <= 'Z')
+            *p = (*p) + 0x20;
+        p++;
+    }
+    return str;
+}
+
+void Api::user_login(){
+    printf("call user_login function \n");
+}
+
+void Api::initApiList(){
+    api_list["user_login"] = &Api::user_login; 
+}
+
+void Api::call(const char* str){
+    string func = string(str,strlen(str));
+    if(api_list.count(func)){
+     (this->*(api_list[func]))(); 
+    }else{
+        printf("not find function\n"); 
+    }
+}
+
+
+void Api::getRquestAction(const char* url){
+    char *buf = new char[strlen(url)+1];
+    strcpy(buf, url);
+    char* contr = strtok( buf, ",/");
+    if(contr != NULL){
+        //favicon.ico
+        if(strcmp(contr,FAVICON) == 0){
+            return;
+        }else{
+            char* act = strtok( NULL, "/");
+            if(act != NULL){
+                char* is_par = strtok( NULL, "?");
+                if(is_par == NULL){
+                    act = strtok( act, "?");
+                }
+            }
+            char* str = new char[strlen(contr)+strlen(act)+2];
+            memset(str,0,strlen(str));
+            contr = this->strlwr(contr); 
+            act = this->strlwr(act); 
+            strcat(str,contr);
+            strcat(str,"_");
+            strcat(str,act);
+            if(this->request_action != NULL){
+                delete this->request_action;
+            }
+            this->request_action = str;
+        }
+    }
+    delete buf;
+}
+
+
 
 void requestHandler(struct evhttp_request *request, void *args){
     // switch(evhttp_request_get_command(request)){
@@ -22,7 +90,11 @@ void requestHandler(struct evhttp_request *request, void *args){
     // }
     const char *uri = evhttp_request_get_uri(request);
     const char *decoded_uri = evhttp_decode_uri(uri);
-        
+    // 获取Action
+    apiThisPointer->getRquestAction(decoded_uri);
+    //调用对应的action
+    apiThisPointer->call(apiThisPointer->request_action);
+
     /* Decode the URI */
     struct evhttp_uri* decoded = evhttp_uri_parse(uri);
     if (!decoded) {
