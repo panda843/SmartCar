@@ -42,17 +42,26 @@ char* Api::strlwr(char* str) {
 
 void Api::user_login() {
   if (evhttp_request_get_command(request) == EVHTTP_REQ_GET) {
+    Json::Value root;
+    Json::Value data;
     MysqlHelper::MysqlData dataSet =
         this->mysql->queryRecord("select * from user");
-    if (dataSet.size() == 0) {
-    } else {
+    root["status"] = Json::Value(true);
+    root["message"] = Json::Value("ok");
+    if (dataSet.size() != 0) {
       for (size_t i = 0; i < dataSet.size(); ++i) {
-        cout << dataSet[i]["username"] << endl;
+        data["id"]= Json::Value(dataSet[i]["id"]);  
+        data["username"]= Json::Value(dataSet[i]["username"]); 
+        data["password"]= Json::Value(dataSet[i]["password"]);   
+        data["nickname"]= Json::Value(dataSet[i]["nickname"]);  
+        data["head"]= Json::Value(dataSet[i]["head"]);  
       }
     }
-    this->sendJson("{\"status\":true,\"token\":\"this token code\"}");
+    root["data"] = data;
+    string json = root.toStyledString();
+    this->sendJson(json.c_str()); 
   } else {
-    this->sendJson("{\"status\":false,\"error\":\"error method error\"}");
+    evhttp_send_error(this->request, HTTP_BADREQUEST, 0);
   }
 }
 
@@ -133,17 +142,16 @@ void requestHandler(struct evhttp_request* request, void* args) {
     evhttp_send_error(request, HTTP_BADREQUEST, 0);
     return;
   }
-  //判断是否是favicon
-  if (!apiThisPointer->is_favicon) {
-    //调用对应的action
-    apiThisPointer->call(apiThisPointer->request_action);
-    return;
-  } else {
+  //判断favicon
+  if (apiThisPointer->is_favicon) {
     struct evkeyvalq* headers = evhttp_request_get_output_headers(request);
     evhttp_add_header(headers, "Content-Type", "text/html; charset=utf-8");
     evhttp_send_reply(request, HTTP_OK, "OK", NULL);
+    return;
   }
-  evhttp_send_error(request, HTTP_BADREQUEST, 0);
+  //调用对应的action
+  apiThisPointer->call(apiThisPointer->request_action);
+  return;
 }
 
 void Api::start() {
