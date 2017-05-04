@@ -1,10 +1,47 @@
-target : Api.o Device.o Mysql.o
-	g++ -g -o main Api.o Device.o Mysql.o  main.cpp -lpthread -levent -lmysqlclient
-Mysql.o : Mysql.cpp
-	g++ -c Mysql.cpp
-Api.o : Api.cpp
-	g++ -levent -c Api.cpp
-Device.o : Device.cpp
-	g++ -c Device.cpp
-clean:
-	rm -rf *.o main
+CROSS =   
+CC = $(CROSS)gcc  
+CXX = $(CROSS)g++  
+DEBUG =   
+CFLAGS = $(DEBUG) -Wall -c 
+MV = mv -f 
+RM = rm -rf 
+LN = ln -sf 
+  
+  
+TOP_PATH = $(shell pwd)
+SRC_PATH = $(TOP_PATH)/src/
+BIN_PATH = $(TOP_PATH)/bin
+LIB_PATH = $(TOP_PATH)/library
+INC_PATH = $(TOP_PATH)/include
+  
+SRCS = $(wildcard $(SRC_PATH)*.cpp) 
+OBJS = $(patsubst %.cpp, %.o, $(SRCS)) 
+#LIBS += $(LIB_PATH)libconfig.a 
+LIBS += -levent -lpthread  -lmysqlclient -ljson
+  
+VERSION = 1.0.0.0 
+TARGET = smartCar$(VERSION)  
+
+all:$(TARGET)  
+	$(MV) $(TARGET) $(BIN_PATH)  
+	$(LN) $(BIN_PATH)/$(TARGET) $(BIN_PATH)/smartCar   
+  
+$(TARGET) : $(OBJS)  
+	$(CXX) $^ -o $@ -L$(LIB_PATH) $(LIBS)  
+  
+$(OBJS):%.o : %.cpp  
+	$(CXX) $(CFLAGS) $< -o $@ -I$(INC_PATH)  
+  
+.PHONY : clean  
+clean:  
+	$(RM) $(TARGET) $(OBJS)  
+# target : Api.o Device.o MysqlHelper.o
+# 	g++ -g -o main Api.o Device.o MysqlHelper.o  main.cpp -lpthread -levent -lmysqlclient -ljson
+# MysqlHelper.o : MysqlHelper.cpp
+# 	g++ -c MysqlHelper.cpp
+# Api.o : Api.cpp
+# 	g++ -levent -c Api.cpp
+# Device.o : Device.cpp
+# 	g++ -c Device.cpp
+# clean:
+# 	rm -rf *.o main
