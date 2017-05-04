@@ -24,6 +24,9 @@ Api::~Api() {
   delete this->ip;
   delete this->mysql;
   delete this->request_action;
+  delete this->request;
+  free(this->request_header);
+  free(this->response_header);
   // 释放HTTP 资源
   evhttp_free(this->httpServer);
   // 释放事件资源
@@ -42,6 +45,8 @@ char* Api::strlwr(char* str) {
 
 void Api::user_login() {
   if (evhttp_request_get_command(request) == EVHTTP_REQ_GET) {
+    const char* username = evhttp_find_header(this->request_header, "username");
+    printf("username:%s\n",username);
     Json::Value root;
     Json::Value data;
     MysqlHelper::MysqlData dataSet =
@@ -118,12 +123,11 @@ void Api::getRquestAction(const char* url) {
 
 void Api::sendJson(const char* json) {
   struct evbuffer* evb = evbuffer_new();
-  // setting response header
-  struct evkeyvalq* headers = evhttp_request_get_output_headers(request);
-  evhttp_add_header(headers, "Content-Type", "text/html; charset=utf-8");
+  //setting response header
+  evhttp_add_header(this->response_header, "Content-Type", "text/html; charset=utf-8");
 
   evbuffer_add_printf(evb, json);
-  evhttp_send_reply(request, HTTP_OK, "OK", evb);
+  evhttp_send_reply(this->request, HTTP_OK, "OK", evb);
 
   evbuffer_free(evb);
 }
@@ -137,15 +141,12 @@ void requestHandler(struct evhttp_request* request, void* args) {
   //获取Action
   apiThisPointer->getRquestAction(decoded_uri);
   //解析提交参数
-  struct evhttp_uri* decoded = evhttp_uri_parse(uri);
-  if (!decoded) {
-    evhttp_send_error(request, HTTP_BADREQUEST, 0);
-    return;
-  }
+  apiThisPointer->request_header = evhttp_request_get_input_headers(request);
+  evhttp_parse_query(decoded_uri, apiThisPointer->request_header);
+  //设置返回头
+  apiThisPointer->response_header = evhttp_request_get_output_headers(request);
   //判断favicon
   if (apiThisPointer->is_favicon) {
-    struct evkeyvalq* headers = evhttp_request_get_output_headers(request);
-    evhttp_add_header(headers, "Content-Type", "text/html; charset=utf-8");
     evhttp_send_reply(request, HTTP_OK, "OK", NULL);
     return;
   }

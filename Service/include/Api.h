@@ -6,6 +6,10 @@
 #include "event/buffer.h"
 #include "event/event.h"
 #include "event/http.h"
+#include "event/http_struct.h"
+#include "event/http_compat.h"
+#include "event/util.h"
+
 #include <string.h>
 #include <ctype.h>
 #include <exception>
@@ -32,6 +36,8 @@ class Api {
   MysqlHelper* mysql;
   bool is_favicon;
   struct evhttp_request* request;
+  struct evkeyvalq* request_header;
+  struct evkeyvalq* response_header;
   struct evhttp* httpServer = NULL;
   struct event_base* eventBase = NULL;
   void getRquestAction(const char* url);
