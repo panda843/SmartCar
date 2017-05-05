@@ -92,6 +92,10 @@ POST_DATA Api::getPostData(const string key){
   POST_DATA post_data; 
   if(this->request_post_data.count(key)){
     post_data = this->request_post_data[key];
+  }else{
+    const char* val = evhttp_find_header(apiThisPointer->request_header, key.c_str());
+    post_data.val = string(val,strlen(val));
+    post_data.is_file = false;
   }
   return post_data;
 }
