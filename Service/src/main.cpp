@@ -1,5 +1,8 @@
 #include "Api.h"
 #include "Device.h"
+#include <signal.h> 
+
+Api* api;
 
 void initDaemon(){
     //设置新会话组长，脱离终端
@@ -26,6 +29,10 @@ void initDaemon(){
     signal(SIGTERM, SIG_IGN); 
 }
 
+void apiSignalHandler(int sig){
+    delete api;
+}
+
 int main(){
     // pid_t pid_api,pid_dev;
     // //创建API进程
@@ -36,9 +43,9 @@ int main(){
     // }else if(pid_api == 0){
         //子进程
         // initDaemon();
-        Api* api = new Api("127.0.0.1",5123);
+        signal(SIGINT, apiSignalHandler);
+        api = new Api("127.0.0.1",5123);
         api->start();
-        delete api;
         // return 0;
     // }
     // //创建DEV进程

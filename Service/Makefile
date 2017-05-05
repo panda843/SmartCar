@@ -1,7 +1,7 @@
 CROSS =   
 CC = $(CROSS)gcc  
 CXX = $(CROSS)g++  
-DEBUG =   
+DEBUG = -g 
 CFLAGS = $(DEBUG) -Wall -c 
 MV = mv -f 
 RM = rm -rf 

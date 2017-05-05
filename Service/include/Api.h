@@ -38,8 +38,8 @@ class Api {
   char* strlwr(char* str);
 
  private:
-  char* ip;
-  char* request_action;
+  char* ip = NULL;
+  char* request_action = NULL;
   unsigned int port;
   MysqlHelper* mysql;
   bool is_favicon;

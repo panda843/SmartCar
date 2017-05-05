@@ -23,12 +23,27 @@ Api::Api(const char* ip, unsigned int port) {
 }
 
 Api::~Api() {
-  delete this->ip;
-  delete this->mysql;
-  delete this->request_action;
-  delete this->request;
-  free(this->request_header);
-  free(this->response_header);
+  event_base_loopexit(this->eventBase,NULL);
+  if(this->ip != NULL){
+    delete []this->ip;
+    this->ip = NULL;
+  }
+  if(this->mysql != NULL){
+    delete this->mysql;
+    this->mysql = NULL;
+  }
+  if(this->request_action != NULL){
+    delete []this->request_action;
+  }
+  if(this->request != NULL){
+    this->request = NULL;
+  }
+  if(this->request_header != NULL){
+    this->request_header = NULL;
+  }
+  if(this->response_header != NULL){
+    this->response_header = NULL;
+  }
   // 释放HTTP 资源
   evhttp_free(this->httpServer);
   // 释放事件资源
@@ -117,20 +132,22 @@ void Api::getRquestAction(const char* url) {
           act = strtok(act, "?");
         }
       }
-      char* str = new char[strlen(contr) + strlen(act) + 2];
-      memset(str, 0, strlen(str));
+      int len = strlen(contr) + strlen(act) + 2;
+      char* str = new char[len];
+      memset(str, 0, len);
       contr = this->strlwr(contr);
       act = this->strlwr(act);
       strcat(str, contr);
       strcat(str, "_");
       strcat(str, act);
       if (this->request_action != NULL) {
-        delete this->request_action;
+        delete []this->request_action;
+        this->request_action = NULL;
       }
       this->request_action = str;
     }
   }
-  delete buf;
+  delete []buf;
 }
 
 void Api::sendJson(const char* json) {
@@ -227,8 +244,8 @@ void Api::parseFormData(const char* content_type){
       line = strtok(NULL,"\r");
     }
   }
-  delete buf;
-  delete post_data;
+  delete []buf;
+  delete []post_data;
 }
 
 void requestHandler(struct evhttp_request* request, void* args) {
@@ -236,7 +253,7 @@ void requestHandler(struct evhttp_request* request, void* args) {
   //获取URL路径
   const char* uri = evhttp_request_get_uri(request);
   // URL路径解码
-  const char* decoded_uri = evhttp_decode_uri(uri);
+  char* decoded_uri = evhttp_decode_uri(uri);
   //获取Action
   apiThisPointer->getRquestAction(decoded_uri);
   //判断favicon
@@ -251,9 +268,13 @@ void requestHandler(struct evhttp_request* request, void* args) {
   //解析提交的GET参数
   evhttp_parse_query(decoded_uri, evhttp_request_get_input_headers(request));
   //解析POST的Form表单
-  apiThisPointer->parseFormData(content_type);
+  if (evhttp_request_get_command(request) == EVHTTP_REQ_POST) {
+    apiThisPointer->parseFormData(content_type);
+  }
   //设置返回头
   apiThisPointer->response_header = evhttp_request_get_output_headers(request);
+  //释放资源
+  free(decoded_uri);
   //调用对应的action
   apiThisPointer->call(apiThisPointer->request_action);
   return;
