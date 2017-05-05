@@ -21,6 +21,14 @@
 using namespace std;
 using namespace mysqlhelper;
 
+typedef struct POST_DATA_S{
+  bool is_file;
+  string val;
+  string mime;
+  string name;
+}POST_DATA;
+
+
 class Api {
  public:
   Api(const char* ip, const unsigned int port);
@@ -40,12 +48,15 @@ class Api {
   struct evkeyvalq* response_header;
   struct evhttp* httpServer = NULL;
   struct event_base* eventBase = NULL;
+  map<string,POST_DATA> request_post_data;
+  POST_DATA getPostData(const string key);
   void getRquestAction(const char* url);
   void initApiList();
   void user_login();
   void user_register();
   void call(const char* str);
   void sendJson(const char* json);
+  void parseFormData(const char* content_type);
 };
 
 #endif

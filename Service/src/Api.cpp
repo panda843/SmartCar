@@ -1,8 +1,10 @@
 #include "Api.h"
 
-Api* apiThisPointer;
 typedef void (Api::*pmf)();
+
 map<string, pmf> api_list;
+
+Api* apiThisPointer;
 
 Api::Api(const char* ip, unsigned int port) {
   apiThisPointer = this;
@@ -45,8 +47,6 @@ char* Api::strlwr(char* str) {
 
 void Api::user_login() {
   if (evhttp_request_get_command(request) == EVHTTP_REQ_GET) {
-    const char* username = evhttp_find_header(this->request_header, "username");
-    printf("username:%s\n",username);
     Json::Value root;
     Json::Value data;
     MysqlHelper::MysqlData dataSet =
@@ -65,7 +65,7 @@ void Api::user_login() {
     root["data"] = data;
     string json = root.toStyledString();
     this->sendJson(json.c_str()); 
-  } else {
+  }else {
     evhttp_send_error(this->request, HTTP_BADREQUEST, 0);
   }
 }
@@ -88,10 +88,18 @@ void Api::call(const char* str) {
   }
 }
 
+POST_DATA Api::getPostData(const string key){
+  POST_DATA post_data; 
+  if(this->request_post_data.count(key)){
+    post_data = this->request_post_data[key];
+  }
+  return post_data;
+}
+
 void Api::getRquestAction(const char* url) {
   char* buf = new char[strlen(url) + 1];
   strcpy(buf, url);
-  char* contr = strtok(buf, ",/");
+  char* contr = strtok(buf, "/");
   if (contr != NULL) {
     // favicon.ico
     if (strcmp(contr, FAVICON) == 0) {
@@ -132,6 +140,93 @@ void Api::sendJson(const char* json) {
   evbuffer_free(evb);
 }
 
+void Api::parseFormData(const char* content_type){
+  //获取POST数据
+  size_t post_size = evbuffer_get_length(this->request->input_buffer);
+  char * post_data = new char[post_size+1];
+  memset(post_data,0,post_size+1);
+  evbuffer_copyout(this->request->input_buffer,post_data,post_size+1);
+  //数据长度判断
+  if(post_size < 0 ){
+    return;
+  }
+  char* buf = new char[strlen(content_type) + 1];
+  strcpy(buf, content_type);
+  //判断x-www-form-urlencoded并解析
+  if(strcmp(buf,"application/x-www-form-urlencoded") == 0){
+    string str = "/?"+string(post_data,strlen(post_data));
+    evhttp_parse_query(str.c_str(), evhttp_request_get_input_headers(this->request));
+    return;
+  }
+  //截取multipart/form-data
+  char* content = strtok(buf, ";");
+  if(!content){
+    return;
+  }
+  //判断multipart/form-data
+  if(strcmp(content,"multipart/form-data") == 0){
+    char* line = strtok(post_data,"\r");
+    while(line != NULL){
+      string startSign = string(line,strlen(line));
+      char* tempKey = strtok(NULL,"\r");
+      string key = string(tempKey,strlen(tempKey)); 
+      int len = key.length();
+      int pos = key.find("name=")+6;
+      int end = key.length()-(pos+1);
+      if(len < pos){
+        break;
+      }
+      //截取KEY
+      key = key.substr(pos,end);
+      int find = key.find("filename=");
+      //检测是不是文件
+      if(find > 0){
+        //获取文件名
+        int file_start = key.find("filename=")+10;
+        int file_end = key.length()-file_start;
+        string file_name = key.substr(file_start,file_end);
+        //获取KEY名字
+        int key_name_pos = key.find("\";");
+        string key_name = key.substr(0,key_name_pos);
+        //获取文件类型
+        char* type = strtok(NULL,"\r");
+        string mime(type,strlen(type));
+        mime = mime.substr(13,mime.length()-13);
+        //获取文件内容
+        string content = "";
+        strtok(NULL,"\n");
+        char* val = strtok(NULL,"\r");
+        while(strcmp(val,startSign.c_str()) != 0){
+          string str(val,strlen(val));
+          content = content + str;
+          val = strtok(NULL,"\r");
+        }
+        POST_DATA post;
+        post.is_file = true;
+        post.name = file_name;
+        post.mime = mime;
+        post.val = content;
+        this->request_post_data[key_name] = post;
+        line = val;
+      }else{
+        strtok(NULL,"\r");
+        char* value = strtok(NULL,"\r");
+        string key_val = string(value,strlen(value));
+        key_val = key_val.substr(1,key_val.length()-1);
+        printf("%s:%s\n",key.c_str(),key_val.c_str() );
+        POST_DATA post;
+        post.is_file = false;
+        post.val = key_val;
+        this->request_post_data[key] = post;
+        //evhttp_add_header(this->request_header, key.c_str(), key_val.c_str());
+      }
+      line = strtok(NULL,"\r");
+    }
+  }
+  delete buf;
+  delete post_data;
+}
+
 void requestHandler(struct evhttp_request* request, void* args) {
   apiThisPointer->request = request;
   //获取URL路径
@@ -140,16 +235,21 @@ void requestHandler(struct evhttp_request* request, void* args) {
   const char* decoded_uri = evhttp_decode_uri(uri);
   //获取Action
   apiThisPointer->getRquestAction(decoded_uri);
-  //解析提交参数
-  apiThisPointer->request_header = evhttp_request_get_input_headers(request);
-  evhttp_parse_query(decoded_uri, apiThisPointer->request_header);
-  //设置返回头
-  apiThisPointer->response_header = evhttp_request_get_output_headers(request);
   //判断favicon
   if (apiThisPointer->is_favicon) {
     evhttp_send_reply(request, HTTP_OK, "OK", NULL);
     return;
   }
+  //获取提交的Header
+  apiThisPointer->request_header = evhttp_request_get_input_headers(request);
+  //获取Content-Type
+  const char* content_type = evhttp_find_header(apiThisPointer->request_header, "Content-Type");
+  //解析提交的GET参数
+  evhttp_parse_query(decoded_uri, evhttp_request_get_input_headers(request));
+  //解析POST的Form表单
+  apiThisPointer->parseFormData(content_type);
+  //设置返回头
+  apiThisPointer->response_header = evhttp_request_get_output_headers(request);
   //调用对应的action
   apiThisPointer->call(apiThisPointer->request_action);
   return;
