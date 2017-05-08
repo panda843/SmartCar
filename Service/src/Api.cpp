@@ -1,11 +1,20 @@
 #include "Api.h"
-
+/**
+ * 函数地址定义
+ */
 typedef void (Api::*pmf)();
-
+/**
+ * API列表定义
+ */
 map<string, pmf> api_list;
-
+/**
+ * this指针定义
+ */
 Api* apiThisPointer;
 
+/**
+ * 构造函数
+ */
 Api::Api(const char* ip, unsigned int port) {
   apiThisPointer = this;
   this->ip = new char[strlen(ip) + 1];
@@ -21,7 +30,9 @@ Api::Api(const char* ip, unsigned int port) {
     exit(0);
   }
 }
-
+/**
+ * 析构函数
+ */
 Api::~Api() {
   if(this->ip != NULL){
     delete []this->ip;
@@ -44,7 +55,13 @@ Api::~Api() {
     this->response_header = NULL;
   }
 }
-
+/**
+ * 字符串转小写
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-05-08
+ * @param    str                              转换前字符串
+ * @return                                    转换后字符串
+ */
 char* Api::strlwr(char* str) {
   if (str == NULL) return NULL;
   char* p = str;
@@ -54,7 +71,11 @@ char* Api::strlwr(char* str) {
   }
   return str;
 }
-
+/**
+ * 用户登录
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-05-08
+ */
 void Api::user_login() {
   if (evhttp_request_get_command(request) == EVHTTP_REQ_GET) {
     Json::Value root;
@@ -79,16 +100,29 @@ void Api::user_login() {
     evhttp_send_error(this->request, HTTP_BADREQUEST, 0);
   }
 }
-
+/**
+ * 用户注册
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-05-08
+ */
 void Api::user_register() {
   this->sendJson("{\"status\":true,\"message\":\"register ok\"}");
 }
-
+/**
+ * 初始化Api列表
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-05-08
+ */
 void Api::initApiList() {
   api_list["user_login"] = &Api::user_login;
   api_list["user_register"] = &Api::user_register;
 }
-
+/**
+ * 调用请求对应方法
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-05-08
+ * @param    str                              请求方法
+ */
 void Api::call(const char* str) {
   string func = string(str, strlen(str));
   if (api_list.count(func)) {
@@ -97,41 +131,60 @@ void Api::call(const char* str) {
     evhttp_send_error(this->request, HTTP_BADREQUEST, 0);
   }
 }
-
+/**
+ * 获取Post提交的数据
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-05-08
+ * @param    key                              key
+ * @return                                    val
+ */
 POST_DATA Api::getPostData(const string key){
   POST_DATA post_data; 
   if(this->request_post_data.count(key)){
+    //key存在从Map里获取
     post_data = this->request_post_data[key];
   }else{
+    //不存在,检查request_header是否存在
     const char* val = evhttp_find_header(apiThisPointer->request_header, key.c_str());
     post_data.val = string(val,strlen(val));
     post_data.is_file = false;
   }
   return post_data;
 }
-
+/**
+ * 获取请求地址
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-05-08
+ * @param    url                              Url地址
+ */
 void Api::getRquestAction(const char* url) {
   char* buf = new char[strlen(url) + 1];
   strcpy(buf, url);
   char* contr = strtok(buf, "/");
   if (contr != NULL) {
-    // favicon.ico
+    // 判断favicon.ico
     if (strcmp(contr, FAVICON) == 0) {
       this->is_favicon = true;
     } else {
       this->is_favicon = false;
+      //截取Action
       char* act = strtok(NULL, "/");
       if (act != NULL) {
+        //存在,检查是否有?
         char* is_par = strtok(NULL, "?");
+        //有?截取?前面的内容
         if (is_par == NULL) {
           act = strtok(act, "?");
         }
       }
+      //设置action地址
       int len = strlen(contr) + strlen(act) + 2;
       char* str = new char[len];
       memset(str, 0, len);
+      //转换小写
       contr = this->strlwr(contr);
       act = this->strlwr(act);
+      //拼接格式:user_login
       strcat(str, contr);
       strcat(str, "_");
       strcat(str, act);
@@ -144,7 +197,11 @@ void Api::getRquestAction(const char* url) {
   }
   delete []buf;
 }
-
+/**
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-05-08
+ * @param    json                             返回数据内容
+ */
 void Api::sendJson(const char* json) {
   struct evbuffer* evb = evbuffer_new();
   //setting response header
@@ -153,7 +210,12 @@ void Api::sendJson(const char* json) {
   evhttp_send_reply(this->request, HTTP_OK, "OK", evb);
   evbuffer_free(evb);
 }
-
+/**
+ * Form数据解析
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-05-08
+ * @param    content_type                     Content-Type
+ */
 void Api::parseFormData(const char* content_type){
   //获取POST数据
   size_t post_size = evbuffer_get_length(this->request->input_buffer);
@@ -168,6 +230,7 @@ void Api::parseFormData(const char* content_type){
   strcpy(buf, content_type);
   //判断x-www-form-urlencoded并解析
   if(strcmp(buf,"application/x-www-form-urlencoded") == 0){
+    //解析并放到request_header里面
     string str = "/?"+string(post_data,strlen(post_data));
     evhttp_parse_query(str.c_str(), evhttp_request_get_input_headers(this->request));
     return;
@@ -181,9 +244,12 @@ void Api::parseFormData(const char* content_type){
   if(strcmp(content,"multipart/form-data") == 0){
     char* line = strtok(post_data,"\r");
     while(line != NULL){
+      //获取开始标记
       string startSign = string(line,strlen(line));
+      //获取key内容
       char* tempKey = strtok(NULL,"\r");
       string key = string(tempKey,strlen(tempKey)); 
+      //获取key位置
       int len = key.length();
       int pos = key.find("name=")+6;
       int end = key.length()-(pos+1);
@@ -208,31 +274,38 @@ void Api::parseFormData(const char* content_type){
         mime = mime.substr(13,mime.length()-13);
         //获取文件内容
         string content = "";
+        //跳过空行
         strtok(NULL,"\n");
+        //获取第一行数据
         char* val = strtok(NULL,"\r");
+        //获取文件内容
         while(strcmp(val,startSign.c_str()) != 0){
           string str(val,strlen(val));
           content = content + str;
           val = strtok(NULL,"\r");
         }
+        //构造Post数据
         POST_DATA post;
         post.is_file = true;
         post.name = file_name;
         post.mime = mime;
         post.val = content;
         this->request_post_data[key_name] = post;
+        //获取下一行
         line = val;
       }else{
+        //跳过空行
         strtok(NULL,"\r");
+        //获取Value
         char* value = strtok(NULL,"\r");
+        //解析Value
         string key_val = string(value,strlen(value));
         key_val = key_val.substr(1,key_val.length()-1);
-        printf("%s:%s\n",key.c_str(),key_val.c_str() );
+        //构造Post数据
         POST_DATA post;
         post.is_file = false;
         post.val = key_val;
         this->request_post_data[key] = post;
-        //evhttp_add_header(this->request_header, key.c_str(), key_val.c_str());
       }
       line = strtok(NULL,"\r");
     }
@@ -240,7 +313,13 @@ void Api::parseFormData(const char* content_type){
   delete []buf;
   delete []post_data;
 }
-
+/**
+ * 请求处理
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-05-08
+ * @param    request                          http request 结构体
+ * @param    args                             参数
+ */
 void requestHandler(struct evhttp_request* request, void* args) {
   apiThisPointer->request = request;
   //获取URL路径
@@ -275,24 +354,38 @@ void requestHandler(struct evhttp_request* request, void* args) {
   return;
 }
 
-// 信号处理event，收到SIGINT (ctrl-c)信号后，退出 
+/**
+ * libevent 信号处理
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-05-08
+ * @param    sig                              信号ID
+ * @param    events                           [description]
+ * @param    user_data                        baseEvent
+ */
 void signal_cb(evutil_socket_t sig, short events, void * user_data)
 {
     struct event_base * base = (struct event_base *)user_data;
     event_base_loopexit(base, NULL);
 }
-
+/**
+ * API运行
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-05-08
+ */
 void Api::start() {
+  //创建eventBase
   this->eventBase = event_base_new();
   if (!this->eventBase) {
     printf("create event_base failed!\n");
     return;
   }
+  //新建httpServer
   this->httpServer = evhttp_new(this->eventBase);
   if (!this->httpServer) {
     printf("create evhttp failed!\n");
     return;
   }
+  //绑定端口
   if (evhttp_bind_socket(this->httpServer, this->ip, this->port) != 0) {
     printf("bind socket failed! port:%d\n", this->port);
     return;

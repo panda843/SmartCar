@@ -22,6 +22,7 @@
 using namespace std;
 using namespace mysqlhelper;
 
+//post数据结构
 typedef struct POST_DATA_S{
   bool is_file;
   string val;
@@ -32,32 +33,57 @@ typedef struct POST_DATA_S{
 
 class Api {
  public:
+  //构造函数
   Api(const char* ip, const unsigned int port);
+  //析构函数
   ~Api();
+  //API运行
   void start();
+  //libevent http 请求处理
   friend void requestHandler(struct evhttp_request* request, void* args);
+  //libevent signal 信号处理
   friend void signal_cb(evutil_socket_t sig, short events, void * user_data);
+  //转小写方法
   char* strlwr(char* str);
 
  private:
+  //监听IP
   char* ip = NULL;
-  char* request_action = NULL;
+  //监听端口
   unsigned int port;
+  //请求方法
+  char* request_action = NULL;
+  //Mysql
   MysqlHelper* mysql;
+  //是否是Favicon
   bool is_favicon;
+  //request信息
   struct evhttp_request* request;
+  //request header 信息
   struct evkeyvalq* request_header;
+  //response header 信息
   struct evkeyvalq* response_header;
+  //httpServer
   struct evhttp* httpServer = NULL;
+  //event base
   struct event_base* eventBase = NULL;
+  //Post数据
   map<string,POST_DATA> request_post_data;
+  //获取Post数据
   POST_DATA getPostData(const string key);
+  //获取请求方法
   void getRquestAction(const char* url);
+  //初始化API列表
   void initApiList();
+  //用户登录
   void user_login();
+  //用户注册
   void user_register();
+  //调用请求对应的方法
   void call(const char* str);
+  //返回数据
   void sendJson(const char* json);
+  //解析form数据
   void parseFormData(const char* content_type);
 };
 
