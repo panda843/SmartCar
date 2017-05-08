@@ -10,6 +10,7 @@
 #include "event/http_compat.h"
 #include "event/util.h"
 
+#include <signal.h> 
 #include <string.h>
 #include <ctype.h>
 #include <exception>
@@ -35,6 +36,7 @@ class Api {
   ~Api();
   void start();
   friend void requestHandler(struct evhttp_request* request, void* args);
+  friend void signal_cb(evutil_socket_t sig, short events, void * user_data);
   char* strlwr(char* str);
 
  private:

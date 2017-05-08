@@ -29,9 +29,9 @@ void initDaemon(){
     signal(SIGTERM, SIG_IGN); 
 }
 
-void apiSignalHandler(int sig){
-    delete api;
-}
+// void apiSignalHandler(int sig){
+//     delete api;
+// }
 
 int main(){
     // pid_t pid_api,pid_dev;
@@ -43,9 +43,10 @@ int main(){
     // }else if(pid_api == 0){
         //子进程
         // initDaemon();
-        signal(SIGINT, apiSignalHandler);
+        // signal(SIGINT, apiSignalHandler);
         api = new Api("127.0.0.1",5123);
         api->start();
+        delete api;
         // return 0;
     // }
     // //创建DEV进程

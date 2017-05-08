@@ -23,7 +23,6 @@ Api::Api(const char* ip, unsigned int port) {
 }
 
 Api::~Api() {
-  event_base_loopexit(this->eventBase,NULL);
   if(this->ip != NULL){
     delete []this->ip;
     this->ip = NULL;
@@ -44,10 +43,6 @@ Api::~Api() {
   if(this->response_header != NULL){
     this->response_header = NULL;
   }
-  // 释放HTTP 资源
-  evhttp_free(this->httpServer);
-  // 释放事件资源
-  event_base_free(this->eventBase);
 }
 
 char* Api::strlwr(char* str) {
@@ -154,10 +149,8 @@ void Api::sendJson(const char* json) {
   struct evbuffer* evb = evbuffer_new();
   //setting response header
   evhttp_add_header(this->response_header, "Content-Type", "text/html; charset=utf-8");
-
   evbuffer_add_printf(evb, json);
   evhttp_send_reply(this->request, HTTP_OK, "OK", evb);
-
   evbuffer_free(evb);
 }
 
@@ -258,6 +251,8 @@ void requestHandler(struct evhttp_request* request, void* args) {
   apiThisPointer->getRquestAction(decoded_uri);
   //判断favicon
   if (apiThisPointer->is_favicon) {
+    //释放资源
+    free(decoded_uri);
     evhttp_send_reply(request, HTTP_OK, "OK", NULL);
     return;
   }
@@ -280,6 +275,13 @@ void requestHandler(struct evhttp_request* request, void* args) {
   return;
 }
 
+// 信号处理event，收到SIGINT (ctrl-c)信号后，退出 
+void signal_cb(evutil_socket_t sig, short events, void * user_data)
+{
+    struct event_base * base = (struct event_base *)user_data;
+    event_base_loopexit(base, NULL);
+}
+
 void Api::start() {
   this->eventBase = event_base_new();
   if (!this->eventBase) {
@@ -295,10 +297,23 @@ void Api::start() {
     printf("bind socket failed! port:%d\n", this->port);
     return;
   }
+  // 初始化信号处理event 
+  struct event * signal_event = evsignal_new(this->eventBase, SIGINT, signal_cb, (void * )this->eventBase);
+  // 把这个callback放入base中 
+  if (!signal_event || event_add(signal_event, NULL)<0) {
+    printf("Listen SIGINT error \n");
+    return;
+  }
   // 设置事件触发后的回调函数
   evhttp_set_gencb(this->httpServer, requestHandler, NULL);
   // 设置服务超时时间，单位为秒
   evhttp_set_timeout(this->httpServer, 120);
   //  循环处理事件
   event_base_dispatch(this->eventBase);  
+  //释放signal资源
+  event_free(signal_event);
+  // 释放HTTP 资源
+  evhttp_free(this->httpServer);
+  // 释放事件资源
+  event_base_free(this->eventBase);
 }
