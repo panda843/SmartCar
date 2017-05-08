@@ -21,12 +21,13 @@ Api::Api(const char* ip, unsigned int port) {
   strcpy(this->ip, ip);
   this->port = port;
   this->initApiList();
+  this->token_list = new TOKEN();
   this->mysql = new MysqlHelper();
   this->mysql->init("127.0.0.1", "root", "root", "smart_car");
   try {
     this->mysql->connect();
   } catch (MysqlHelper_Exception& excep) {
-    cout << excep.errorInfo;
+    printf("%s\n",excep.errorInfo.c_str() );
     exit(0);
   }
 }
@@ -72,43 +73,6 @@ char* Api::strlwr(char* str) {
   return str;
 }
 /**
- * 用户登录
- * @Author   DuanEnJian<backtrack843@163.com>
- * @DateTime 2017-05-08
- */
-void Api::user_login() {
-  if (evhttp_request_get_command(request) == EVHTTP_REQ_GET) {
-    Json::Value root;
-    Json::Value data;
-    MysqlHelper::MysqlData dataSet =
-        this->mysql->queryRecord("select * from user");
-    root["status"] = Json::Value(true);
-    root["message"] = Json::Value("ok");
-    if (dataSet.size() != 0) {
-      for (size_t i = 0; i < dataSet.size(); ++i) {
-        data["id"]= Json::Value(dataSet[i]["id"]);  
-        data["username"]= Json::Value(dataSet[i]["username"]); 
-        data["password"]= Json::Value(dataSet[i]["password"]);   
-        data["nickname"]= Json::Value(dataSet[i]["nickname"]);  
-        data["head"]= Json::Value(dataSet[i]["head"]);  
-      }
-    }
-    root["data"] = data;
-    string json = root.toStyledString();
-    this->sendJson(json.c_str()); 
-  }else {
-    evhttp_send_error(this->request, HTTP_BADREQUEST, 0);
-  }
-}
-/**
- * 用户注册
- * @Author   DuanEnJian<backtrack843@163.com>
- * @DateTime 2017-05-08
- */
-void Api::user_register() {
-  this->sendJson("{\"status\":true,\"message\":\"register ok\"}");
-}
-/**
  * 初始化Api列表
  * @Author   DuanEnJian<backtrack843@163.com>
  * @DateTime 2017-05-08
@@ -116,6 +80,7 @@ void Api::user_register() {
 void Api::initApiList() {
   api_list["user_login"] = &Api::user_login;
   api_list["user_register"] = &Api::user_register;
+  api_list["device_list"] = &Api::device_list;
 }
 /**
  * 调用请求对应方法
@@ -314,6 +279,56 @@ void Api::parseFormData(const char* content_type){
   delete []post_data;
 }
 /**
+ * 创建Token
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-05-08
+ * @return   [description]
+ */
+string Api::createToken(){
+  //创建随机字符
+  char str[33];
+  int i;
+  srand(time(NULL));
+  for(i=0;i<31;++i){
+    str[i]='a'+rand()%26;
+  }
+  str[++i]='\0';
+  string token_key(str,strlen(str));
+  //获取当前时间
+  time_t current_time = time(NULL);
+  //加1小时
+  struct tm *ptm = gmtime(&current_time);
+  ptm->tm_hour = ptm->tm_hour+1;
+  current_time = mktime(ptm);
+  //放入token列表
+  this->token_list->insert(make_pair(token_key, current_time));
+  return token_key;
+}
+/**
+ * 检查Token
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-05-08
+ * @param    token                            token
+ * @return                                    token是否正常
+ */
+bool Api::checkToken(const string token){
+  TOKEN::iterator iter;
+  //获取当前时间
+  time_t current_time = time(NULL);
+  //删除过期token
+  for(iter = this->token_list->begin(); iter != this->token_list->end(); ++iter){
+    time_t token_time = iter->second;
+    if(current_time < token_time){
+      this->token_list->erase(iter);
+    }
+  }
+  if(this->token_list->count(token)){
+    return true;
+  }else{
+    return false;
+  }
+}
+/**
  * 请求处理
  * @Author   DuanEnJian<backtrack843@163.com>
  * @DateTime 2017-05-08
@@ -368,6 +383,11 @@ void signal_cb(evutil_socket_t sig, short events, void * user_data)
     event_base_loopexit(base, NULL);
 }
 /**
+ * -----------------------------------------------------------------------------------------------------
+ * API列表
+ * -----------------------------------------------------------------------------------------------------
+ */
+/**
  * API运行
  * @Author   DuanEnJian<backtrack843@163.com>
  * @DateTime 2017-05-08
@@ -410,3 +430,66 @@ void Api::start() {
   // 释放事件资源
   event_base_free(this->eventBase);
 }
+/**
+ * 用户登录
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-05-08
+ */
+void Api::user_login() {
+  if (evhttp_request_get_command(request) == EVHTTP_REQ_POST) {
+    string sql = "select * from user where ";
+    Json::Value root;
+    Json::Value data;
+    //检查参数
+    POST_DATA username = this->getPostData("username");
+    POST_DATA password = this->getPostData("password");
+
+    if(username.val.length() == 0 || password.val.length() == 0){
+      evhttp_send_error(this->request, HTTP_BADREQUEST, 0);
+      return;
+    }
+    //查询数据
+    sql = sql+"username=\""+username.val+"\" and password=\""+MD5(password.val).toStr()+"\"";
+    //查找用户是否存在
+    MysqlHelper::MysqlData dataSet = this->mysql->queryRecord(sql);
+    if (dataSet.size() != 0) {
+      //用户存在创建Token
+      root["status"] = Json::Value(true);
+      root["message"] = Json::Value("ok");
+      data["token"] = this->createToken();
+    }else{
+      root["status"] = Json::Value(false);
+      root["message"] = Json::Value("账号或密码不正确");
+    }
+    root["data"] = data;
+    string json = root.toStyledString();
+    this->sendJson(json.c_str()); 
+  }else {
+    evhttp_send_error(this->request, HTTP_BADREQUEST, 0);
+  }
+}
+/**
+ * 用户注册
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-05-08
+ */
+void Api::user_register() {
+  this->sendJson("{\"status\":false,\"message\":\"Not open registration\"}");
+}
+void Api::device_list(){
+  if (evhttp_request_get_command(request) == EVHTTP_REQ_GET) {
+    const char* token = evhttp_find_header(this->request_header,"token");
+    if(token == NULL){
+      evhttp_send_error(this->request, 401, 0);
+      return;
+    }
+    if(!this->checkToken(string(token,strlen(token)))){
+      evhttp_send_error(this->request, 401, 0);
+      return;
+    }
+    this->sendJson("token ok");
+  }else{
+    evhttp_send_error(this->request, HTTP_BADREQUEST, 0);
+  }
+}
+
