@@ -45,6 +45,7 @@ Api::~Api() {
   }
   if(this->request_action != NULL){
     delete []this->request_action;
+    this->request_action = NULL;
   }
   if(this->request != NULL){
     this->request = NULL;
@@ -54,6 +55,10 @@ Api::~Api() {
   }
   if(this->response_header != NULL){
     this->response_header = NULL;
+  }
+  if(this->token_list != NULL){
+    delete this->token_list;
+    this->token_list = NULL;
   }
 }
 /**
@@ -318,10 +323,12 @@ bool Api::checkToken(const string token){
   //删除过期token
   for(iter = this->token_list->begin(); iter != this->token_list->end(); ++iter){
     time_t token_time = iter->second;
+    //检查token是否过期
     if(current_time < token_time){
       this->token_list->erase(iter);
     }
   }
+  //检查token是否存在
   if(this->token_list->count(token)){
     return true;
   }else{
@@ -476,13 +483,20 @@ void Api::user_login() {
 void Api::user_register() {
   this->sendJson("{\"status\":false,\"message\":\"Not open registration\"}");
 }
+/**
+ * 获取设备列表
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-05-08
+ */
 void Api::device_list(){
   if (evhttp_request_get_command(request) == EVHTTP_REQ_GET) {
     const char* token = evhttp_find_header(this->request_header,"token");
+    //判断token是否为空
     if(token == NULL){
       evhttp_send_error(this->request, 401, 0);
       return;
     }
+    //检查token是否合法
     if(!this->checkToken(string(token,strlen(token)))){
       evhttp_send_error(this->request, 401, 0);
       return;
