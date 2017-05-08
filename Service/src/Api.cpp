@@ -467,6 +467,9 @@ void Api::user_login() {
       root["status"] = Json::Value(true);
       root["message"] = Json::Value("ok");
       data["token"] = this->createToken();
+      data["user_id"] = dataSet[0]["id"];
+      data["nickname"] = dataSet[0]["nickname"];
+      data["head"] = dataSet[0]["head"];
     }else{
       root["status"] = Json::Value(false);
       root["message"] = Json::Value("账号或密码不正确");
@@ -493,6 +496,8 @@ void Api::user_register() {
  */
 void Api::device_list(){
   if (evhttp_request_get_command(request) == EVHTTP_REQ_GET) {
+    Json::Value root;
+    Json::Value data;
     const char* token = evhttp_find_header(this->request_header,"token");
     //判断token是否为空
     if(token == NULL){
@@ -504,7 +509,23 @@ void Api::device_list(){
       evhttp_send_error(this->request, 401, 0);
       return;
     }
-    this->sendJson("token ok");
+    MysqlHelper::MysqlData dataSet = this->mysql->queryRecord("select * from device");
+    root["status"] = Json::Value(true);
+    root["message"] = Json::Value("ok");
+    if(dataSet.size() != 0){
+      for(size_t i=0;i<dataSet.size();++i){
+        Json::Value node;
+        node["id"] = dataSet[i]["id"];
+        node["name"] = dataSet[i]["name"];
+        node["mac"] = dataSet[i]["mac"];
+        node["status"] = dataSet[i]["status"];
+        root["data"].append(node);
+      }
+    }else{
+      root["data"] = data;
+    }
+    string json = root.toStyledString();
+    this->sendJson(json.c_str()); 
   }else{
     evhttp_send_error(this->request, HTTP_BADREQUEST, 0);
   }
