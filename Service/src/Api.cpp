@@ -116,8 +116,10 @@ POST_DATA Api::getPostData(const string key){
   }else{
     //不存在,检查request_header是否存在
     const char* val = evhttp_find_header(apiThisPointer->request_header, key.c_str());
-    post_data.val = string(val,strlen(val));
-    post_data.is_file = false;
+    if(val != NULL){
+      post_data.val = string(val,strlen(val));
+      post_data.is_file = false;
+    }
   }
   return post_data;
 }
@@ -196,6 +198,7 @@ void Api::parseFormData(const char* content_type){
   if(post_size < 0 ){
     return;
   }
+  //copy data
   char* buf = new char[strlen(content_type) + 1];
   strcpy(buf, content_type);
   //判断x-www-form-urlencoded并解析
@@ -205,9 +208,16 @@ void Api::parseFormData(const char* content_type){
     evhttp_parse_query(str.c_str(), evhttp_request_get_input_headers(this->request));
     return;
   }
-  //截取multipart/form-data
+  //截取multipart/form-data or x-www-form-urlencoded
   char* content = strtok(buf, ";");
   if(!content){
+    return;
+  }
+  //判断x-www-form-urlencoded并解析
+  if(strcmp(content,"application/x-www-form-urlencoded") == 0){
+    //解析并放到request_header里面
+    string str = "/?"+string(post_data,strlen(post_data));
+    evhttp_parse_query(str.c_str(), evhttp_request_get_input_headers(this->request));
     return;
   }
   //判断multipart/form-data
