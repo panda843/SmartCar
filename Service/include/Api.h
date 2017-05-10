@@ -59,7 +59,7 @@ class Api {
   //Mysql
   MysqlHelper* mysql;
   //是否是Favicon
-  bool is_favicon;
+  bool is_favicon = false;
   //request信息
   struct evhttp_request* request;
   //request header 信息

@@ -94,6 +94,10 @@ void Api::initApiList() {
  * @param    str                              请求方法
  */
 void Api::call(const char* str) {
+  if(str == NULL){
+    evhttp_send_error(this->request, HTTP_BADREQUEST, 0);
+    return;
+  }
   string func = string(str, strlen(str));
   if (api_list.count(func)) {
     (this->*(api_list[func]))();
@@ -150,21 +154,28 @@ void Api::getRquestAction(const char* url) {
         }
       }
       //设置action地址
-      int len = strlen(contr) + strlen(act) + 2;
-      char* str = new char[len];
-      memset(str, 0, len);
-      //转换小写
-      contr = this->strlwr(contr);
-      act = this->strlwr(act);
-      //拼接格式:user_login
-      strcat(str, contr);
-      strcat(str, "_");
-      strcat(str, act);
-      if (this->request_action != NULL) {
-        delete []this->request_action;
-        this->request_action = NULL;
+      if(contr != NULL && act != NULL){
+        int len = strlen(contr) + strlen(act) + 2;
+        char* str = new char[len];
+        memset(str, 0, len);
+        //转换小写
+        contr = this->strlwr(contr);
+        act = this->strlwr(act);
+        //拼接格式:user_login
+        strcat(str, contr);
+        strcat(str, "_");
+        strcat(str, act);
+        if (this->request_action != NULL) {
+          delete []this->request_action;
+          this->request_action = NULL;
+        }
+        this->request_action = str;
+      }else{
+        if (this->request_action != NULL) {
+          delete []this->request_action;
+          this->request_action = NULL;
+        }
       }
-      this->request_action = str;
     }
   }
   delete []buf;
@@ -196,6 +207,9 @@ void Api::parseFormData(const char* content_type){
   evbuffer_copyout(this->request->input_buffer,post_data,post_size+1);
   //数据长度判断
   if(post_size < 0 ){
+    return;
+  }
+  if(content_type == NULL){
     return;
   }
   //copy data
@@ -361,9 +375,8 @@ void requestHandler(struct evhttp_request* request, void* args) {
   //获取Action
   apiThisPointer->getRquestAction(decoded_uri);
   //判断favicon
-  if (apiThisPointer->is_favicon) {
+  if(apiThisPointer->is_favicon) {
     //释放资源
-    free(decoded_uri);
     evhttp_send_reply(request, HTTP_OK, "OK", NULL);
     return;
   }
