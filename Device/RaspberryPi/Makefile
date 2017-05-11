@@ -15,14 +15,14 @@ INC_PATH = $(TOP_PATH)/include
   
 SRCS = $(wildcard $(SRC_PATH)*.cpp) 
 OBJS = $(patsubst %.cpp, %.o, $(SRCS)) 
-LIBS += -levent -lpthread  -lmysqlclient -ljson
+LIBS += -levent -lpthread
   
 VERSION = 1.0.0.0 
-TARGET = smartCar$(VERSION)  
+TARGET = client$(VERSION)  
 
 all:$(TARGET)  
 	$(MV) $(TARGET) $(BIN_PATH)  
-	$(LN) $(BIN_PATH)/$(TARGET) $(BIN_PATH)/smartCar   
+	$(LN) $(BIN_PATH)/$(TARGET) $(BIN_PATH)/client   
 $(TARGET) : $(OBJS)  
 	$(CXX) $^ -o $@ -L$(LIB_PATH) $(LIBS)  
   
@@ -31,4 +31,4 @@ $(OBJS):%.o : %.cpp
   
 .PHONY : clean  
 clean:  
-	$(RM) $(BIN_PATH)/$(TARGET) $(OBJS) $(BIN_PATH)/smartCar
+	$(RM) $(BIN_PATH)/$(TARGET) $(OBJS) $(BIN_PATH)/client

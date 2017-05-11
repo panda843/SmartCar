@@ -1,8 +1,15 @@
 #include "Api.h"
 #include "Device.h"
-#include <signal.h> 
 
-Api* api;
+#include <signal.h> 
+#include <unistd.h>
+#include <sys/param.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <string.h>
+#include <string>
+
+using namespace std;
 
 void initDaemon(){
     //设置新会话组长，脱离终端
@@ -29,10 +36,6 @@ void initDaemon(){
     signal(SIGTERM, SIG_IGN); 
 }
 
-// void apiSignalHandler(int sig){
-//     delete api;
-// }
-
 int main(){
     // pid_t pid_api,pid_dev;
     // //创建API进程
@@ -43,10 +46,9 @@ int main(){
     // }else if(pid_api == 0){
         //子进程
         // initDaemon();
-        // signal(SIGINT, apiSignalHandler);
-        api = new Api("127.0.0.1",5123);
-        api->start();
-        delete api;
+        // api = new Api("127.0.0.1",5123);
+        // api->start();
+        // delete api;
         // return 0;
     // }
     // //创建DEV进程
@@ -57,9 +59,13 @@ int main(){
     // }else if(pid_dev == 0){
     //     //子进程
     //     initDaemon();
-    //     Device* dev = new Device("127.0.0.1",5124);
-    //     dev->start();
-    //     delete dev;
+        Device* device = new Device();
+        device->start("127.0.0.1",5124);
+        // device->AddSignalEvent(SIGINT, Device::QuitCb);
+        // timeval tv = {10, 0};
+        // device->AddTimerEvent(Device::TimeOutCb, tv, false);
+        // device->SetPort(5124);
+        // device->StartRun();
     //     return 0;
     // }
     // //父进程
