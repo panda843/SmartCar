@@ -50,7 +50,7 @@
 extern "C" {
 #endif
 
-#include <event2/event-config.h>
+#include "event/event-config.h"
 
 /**
    @name Flags passed to lock functions
