@@ -32,7 +32,9 @@ CREATE TABLE `device` (
   `id` int(11) NOT NULL COMMENT '设备ID',
   `name` varchar(32) NOT NULL COMMENT '设备名称',
   `mac` varchar(17) NOT NULL COMMENT '设备MAC地址',
-  `status` tinyint(4) NOT NULL COMMENT '设备状态'
+  `sock_fd` int(11) NOT NULL DEFAULT 0 COMMENT '设备对应的Sock_fd',
+  `online` tinyint(4) NOT NULL COMMENT '是否在线(1:在线,2:离线)',
+  `status` tinyint(4) NOT NULL COMMENT '设备状态(1:正常,2:异常)'
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='设备表';
 
 -- --------------------------------------------------------

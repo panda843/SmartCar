@@ -49,36 +49,33 @@ void Device::handlerDeverInfo(Conn* &conn, Json::Value &request_data){
     string sql = "select * from device where ";
     string name = request_data["name"].asString();
     string mac = request_data["mac"].asString();
+    //获取fd并转string
+    int fd = conn->GetFd();
+    char intToStr[12];
+    sprintf(intToStr,"%d",fd);
+    string str_fd = string(intToStr);
     //检查设备是否存在
     sql = sql+"name=\""+name+"\" and mac=\""+mac+"\"";
-    try{
-        MysqlHelper::MysqlData dataSet = this->mysql->queryRecord(sql);
+    MysqlHelper::MysqlData dataSet = this->mysql->queryRecord(sql);
     if (dataSet.size() == 0) {
         //不存在,新增
         MysqlHelper::RECORD_DATA record;
         record.insert(make_pair("name",make_pair(MysqlHelper::DB_STR,name)));
         record.insert(make_pair("mac",make_pair(MysqlHelper::DB_STR,mac)));
+        record.insert(make_pair("online",make_pair(MysqlHelper::DB_INT,"1")));
         record.insert(make_pair("status",make_pair(MysqlHelper::DB_INT,"1")));
-        try{
-            int insert_id = this->mysql->insertRecord("device",record);
-            data["id"] = insert_id;
-        }catch(MysqlHelper_Exception& excep){
-            printf("error:%s\n",excep.errorInfo.c_str());
-        }
+        record.insert(make_pair("sock_fd",make_pair(MysqlHelper::DB_INT,str_fd)));
+        int insert_id = this->mysql->insertRecord("device",record);
+        data["id"] = insert_id;
     }else{
         //存在,更新状态
         string up_sql = "where  mac = \""+mac+"\"";
         MysqlHelper::RECORD_DATA recordChange;
-        recordChange.insert(make_pair("status",make_pair(MysqlHelper::DB_INT,"2")));
-        try{
-            this->mysql->updateRecord("device",recordChange,up_sql);
-            data["id"] = dataSet[0]["id"];
-        }catch(MysqlHelper_Exception& excep){
-            printf("error:%s\n",excep.errorInfo.c_str());
-        }
-    }
-    }catch(MysqlHelper_Exception& excep){
-        printf("error:%s\n",excep.errorInfo.c_str());
+        recordChange.insert(make_pair("online",make_pair(MysqlHelper::DB_INT,"1")));
+        recordChange.insert(make_pair("status",make_pair(MysqlHelper::DB_INT,"1")));
+        recordChange.insert(make_pair("sock_fd",make_pair(MysqlHelper::DB_INT,str_fd)));
+        this->mysql->updateRecord("device",recordChange,up_sql);
+        data["id"] = dataSet[0]["id"];
     }
     root["protocol"] = API_DEVICE_INFO;
     root["data"] = data;
@@ -116,16 +113,30 @@ void Device::WriteEvent(Conn *conn){
     
 }
 
-void Device::ConnectionEvent(Conn *conn)
-{
+void Device::ConnectionEvent(Conn *conn){
     Device *me = (Device*)conn->GetThread()->tcpConnect;
-    printf("new connection: %d\n", conn->GetFd());
     me->vec.push_back(conn);
+    printf("new client fd: %d\n", conn->GetFd());
 }
 
-void Device::CloseEvent(Conn *conn, short events)
-{
+void Device::CloseEvent(Conn *conn, short events){
+    char str_fd[12];
+    sprintf(str_fd,"%d",conn->GetFd());
+    string sql = "select * from device where sock_fd = "+string(str_fd);
+    MysqlHelper::MysqlData dataSet = this->mysql->queryRecord(sql);
+    if (dataSet.size() != 0) {
+        string up_sql = "where  mac = \""+dataSet[0]["mac"]+"\"";
+        MysqlHelper::RECORD_DATA recordChange;
+        recordChange.insert(make_pair("online",make_pair(MysqlHelper::DB_INT,"2")));
+        recordChange.insert(make_pair("sock_fd",make_pair(MysqlHelper::DB_INT,"0")));
+        this->mysql->updateRecord("device",recordChange,up_sql);
+        data["id"] = dataSet[0]["id"];
+    }else{
+        printf("close sock_fd error,not find mysql socke_fd !!\n");
+    }
     printf("connection closed: %d\n", conn->GetFd());
+    vector<Conn*>::iterator iter=find(this->vec.begin(),this->vec.end(),conn);
+    if(iter!=this->vec.end())this->vec.erase(iter);
 }
 
 void Device::QuitCb(int sig, short events, void *data)
