@@ -15,7 +15,7 @@ INC_PATH = $(TOP_PATH)/include
   
 SRCS = $(wildcard $(SRC_PATH)*.cpp) 
 OBJS = $(patsubst %.cpp, %.o, $(SRCS)) 
-LIBS += -levent -lpthread
+LIBS += -levent -lpthread -ljson
   
 VERSION = 1.0.0.0 
 TARGET = client$(VERSION)  

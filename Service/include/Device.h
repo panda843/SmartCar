@@ -1,19 +1,18 @@
 #ifndef _DEVICE_H_
 #define _DEVICE_H_
 
+#include "MysqlHelper.h"
+#include "Protocol.h"
 #include "TcpEvent.h"
+#include "json/json.h"
 #include <set>
 #include <vector>
-
-// #include <string.h>
-// #include <string>
-// #include <arpa/inet.h>
-// #include <stdlib.h>
-
-// #include "event/event.h"
-// #include "event/listener.h"
+#include <map>
+#include <string>
+#include <string.h>
 
 using namespace std;
+using namespace mysqlhelper;
 
 class Device : public TcpEventServer{
     public:
@@ -32,9 +31,16 @@ class Device : public TcpEventServer{
         void CloseEvent(Conn *conn, short events);
     private:
         vector<Conn*> vec;
-      //event base
-      // struct event_base* eventBase = NULL;
-
+        MysqlHelper* mysql;
+        void handlerDeverInfo(Conn* &conn, Json::Value &request_data);
+        void initApiList();
+        void sendData(Conn* &conn,const string resp_data);
+        void call(Conn* &conn, Json::Value &request_data,const string func);
 };
+
+/**
+ * 函数地址定义
+ */
+typedef void (Device::*pfunc)(Conn*&, Json::Value&);
 
 #endif
