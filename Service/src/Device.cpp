@@ -134,21 +134,14 @@ void Device::CloseEvent(Conn *conn, short events){
         printf("close sock_fd error,not find mysql socke_fd !!\n");
     }
     printf("connection closed: %d\n", conn->GetFd());
-    vector<Conn*>::iterator it;
-    for(it=this->vec.begin();it!=this->vec.end();){
-        if(*(it)->GetFd() == data[0]["id"]){
-            it=iVec.erase(it);
-        }else{
-            it++;
-        }
-    }
-    for(int i=0;i<vec.size();i++){
-        if(this->vec[i].GetFd() == dataSet[0]["sock_fd"]){
-
-        }
-    }
-    vector<Conn*>::iterator iter=find(this->vec.begin(),this->vec.end(),conn);
-    if(iter!=this->vec.end())this->vec.erase(iter);
+    // vector<Conn*>::iterator it;
+    // for(it=this->vec.begin();it!=this->vec.end();){
+    //     if(*(it)->GetFd() == data[0]["id"]){
+    //         it=iVec.erase(it);
+    //     }else{
+    //         it++;
+    //     }
+    // }
 }
 
 void Device::QuitCb(int sig, short events, void *data)
