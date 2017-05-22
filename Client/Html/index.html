@@ -132,7 +132,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
       <ul class="sidebar-menu">
         <li class="header">控制台</li>
         <!-- Optionally, you can add icons to the links -->
-        <li class="active"><a href="#"><i class="fa fa-cubes"></i> <span>设备列表</span></a></li>
+        <li class="active"><a ng-cloak href="{{url_console}}"><i class="fa fa-cubes"></i> <span>设备列表</span></a></li>
       </ul>
       <!-- /.sidebar-menu -->
     </section>
@@ -161,6 +161,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                       <th>设备ID</th>
                       <th>设备名称</th>
                       <th>MAC地址</th>
+                      <th>是否在线</th>
                       <th>设备状态</th>
                       <th>设备管理</th>
                     </tr>
@@ -171,6 +172,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                       <td>{{data.id}}</td>
                       <td>{{data.name}}</td>
                       <td>{{data.mac}}</td>
+                      <td>{{data.online}}</td>
                       <td>{{data.status}}</td>
                       <td><a href="javascript:void(0);">操作</a></td>
                     </tr>

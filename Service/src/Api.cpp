@@ -541,6 +541,8 @@ void Api::device_list(){
         node["id"] = dataSet[i]["id"];
         node["name"] = dataSet[i]["name"];
         node["mac"] = dataSet[i]["mac"];
+        node["online"] = dataSet[i]["online"];
+        node["sockfd"] = dataSet[i]["sock_fd"];
         node["status"] = dataSet[i]["status"];
         root["data"].append(node);
       }

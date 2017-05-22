@@ -8,6 +8,9 @@
         Route.Redirect = function (url){
             window.location.href=window.location.protocol+"//"+document.domain+"/"+url+".html";
         }
+        Route.getRedirectUrl = function(url){
+            return window.location.protocol+"//"+document.domain+"/"+url+".html";
+        }
         return Route;
     });
 
@@ -125,10 +128,17 @@
     });
 
     app.controller('IndexCtl',function($scope,User,Route,$http) {
+        $scope.url_console = Route.getRedirectUrl("index");
         if(!User.isLogin()){
             Route.Redirect("login");
         }
         $http.get(api_url+"/device/list"+"?token="+User.getToken()).then(function successCallback(response) {
+            for(var index in response.data.data){
+                var online = response.data.data[index].online;
+                var status = response.data.data[index].status;
+                response.data.data[index].online = (online == 1) ? "在线":"离线";
+                response.data.data[index].status = (status == 1) ? "正常":"异常";
+            } 
             $scope.deviceList = response.data.data;
         });
         $scope.nickname = User.getNickName();

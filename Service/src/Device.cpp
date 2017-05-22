@@ -114,9 +114,8 @@ void Device::WriteEvent(Conn *conn){
 }
 
 void Device::ConnectionEvent(Conn *conn){
-    Device *me = (Device*)conn->GetThread()->tcpConnect;
-    me->vec.push_back(conn);
-    printf("new client fd: %d\n", conn->GetFd());
+    int sock_fd = conn->GetFd();
+    this->sock_list[sock_fd] = conn;
 }
 
 void Device::CloseEvent(Conn *conn, short events){
@@ -133,15 +132,12 @@ void Device::CloseEvent(Conn *conn, short events){
     }else{
         printf("close sock_fd error,not find mysql socke_fd !!\n");
     }
-    printf("connection closed: %d\n", conn->GetFd());
-    // vector<Conn*>::iterator it;
-    // for(it=this->vec.begin();it!=this->vec.end();){
-    //     if(*(it)->GetFd() == data[0]["id"]){
-    //         it=iVec.erase(it);
-    //     }else{
-    //         it++;
-    //     }
-    // }
+    map<int,Conn*>::iterator iter;
+    for(iter=this->sock_list.begin(); iter!=this->sock_list.end(); iter++){
+        if (iter->first == conn->GetFd()){  
+            this->sock_list.erase(iter);  
+        }
+    }
 }
 
 void Device::QuitCb(int sig, short events, void *data)

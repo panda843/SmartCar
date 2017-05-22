@@ -155,7 +155,7 @@ public:
     //构造函数
     TcpEventServer();
     //析构函数
-    ~TcpEventServer();
+    virtual ~TcpEventServer();
     //设置监听的端口号，如果不需要监听，请将其设置为EXIT_CODE
     void SetPort(int port){ m_Port = port;}
     //设置监听的IP

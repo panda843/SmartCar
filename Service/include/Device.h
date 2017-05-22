@@ -6,7 +6,6 @@
 #include "TcpEvent.h"
 #include "json/json.h"
 #include <set>
-#include <vector>
 #include <map>
 #include <string>
 #include <string.h>
@@ -30,7 +29,7 @@ class Device : public TcpEventServer{
         void ConnectionEvent(Conn *conn);
         void CloseEvent(Conn *conn, short events);
     private:
-        vector<Conn*> vec;
+        map<int,Conn*> sock_list;
         MysqlHelper* mysql;
         void handlerDeverInfo(Conn* &conn, Json::Value &request_data);
         void initApiList();
