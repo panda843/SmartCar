@@ -35,7 +35,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
   <![endif]-->
 </head>
-<body ng-cloak ng-controller="IndexCtl" class="hold-transition skin-blue sidebar-mini">
+<body ng-cloak ng-controller="ControlCtl" class="hold-transition skin-blue sidebar-mini">
 <div class="wrapper">
 
   <!-- Main Header -->
@@ -145,48 +145,17 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <section class="content-header">
       <h1>
         <ol class="breadcrumb">
-          <li class="active" ><i class="fa fa-cubes"></i> 设备列表</li>
+          <li><a href="{{url_console}}"><i class="fa fa-cubes"></i> 设备列表</a></li>
+          <li class="active">设备控制</li>
         </ol>
       </h1>
+
     </section>
 
     <!-- Main content -->
     <section class="content">
 
-    <div class="row">
-            <div class="col-xs-12">
-              <div class="box">
-                <!-- /.box-header -->
-                <div class="box-body table-responsive no-padding">
-                  <table class="table table-hover">
-                    <tbody><tr>
-                      <th>设备ID</th>
-                      <th>设备名称</th>
-                      <th>MAC地址</th>
-                      <th>是否在线</th>
-                      <th>设备状态</th>
-                      <th>设备管理</th>
-                    </tr>
-                    <tr ng-cloak ng-if="deviceList == null">
-                      <td colspan="5" style="text-align: center;">没有设备</td>
-                    </tr>
-                    <tr ng-cloak ng-if="deviceList != null" ng-repeat="data in deviceList">
-                      <td>{{data.id}}</td>
-                      <td>{{data.name}}</td>
-                      <td>{{data.mac}}</td>
-                      <td>{{data.online}}</td>
-                      <td>{{data.status}}</td>
-                      <td>
-                        <a ng-cloak ng-click="redirectControl(data.id)" href="###">控制</a>
-                      </td>
-                    </tr>
-                  </tbody></table>
-                </div>
-                <!-- /.box-body -->
-              </div>
-              <!-- /.box -->
-            </div>
-          </div>
+    <div class="row"></div>
 
     </section>
     <!-- /.content -->

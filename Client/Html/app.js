@@ -126,12 +126,18 @@
         }
         return User;  
     });
-
-    app.controller('IndexCtl',function($scope,User,Route,$http) {
+    app.controller('ControlCtl',function($scope,User,Cookie,Route,$http){
+        if(!User.isLogin()){ Route.Redirect("login"); }
         $scope.url_console = Route.getRedirectUrl("index");
-        if(!User.isLogin()){
-            Route.Redirect("login");
-        }
+        $scope.nickname = User.getNickName();
+        $scope.logout = User.logOut;
+    });
+    app.controller('IndexCtl',function($scope,User,Route,Cookie,$http) {
+        if(!User.isLogin()){ Route.Redirect("login"); }
+        $scope.url_console = Route.getRedirectUrl("index");
+        $scope.nickname = User.getNickName();
+        $scope.logout = User.logOut;
+
         $http.get(api_url+"/device/list"+"?token="+User.getToken()).then(function successCallback(response) {
             for(var index in response.data.data){
                 var online = response.data.data[index].online;
@@ -141,8 +147,11 @@
             } 
             $scope.deviceList = response.data.data;
         });
-        $scope.nickname = User.getNickName();
-        $scope.logout = User.logOut;
+        
+        $scope.redirectControl = function(device_id){
+            Cookie.setCookie("control_use_id",device_id);
+            Route.Redirect("control");
+        }
     });
     app.controller('LoginCtl',function($scope,User,Route,$http) {
         if(User.isLogin()){
