@@ -36,181 +36,297 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <![endif]-->
 </head>
 <body ng-cloak ng-controller="ControlCtl" class="hold-transition skin-blue sidebar-mini">
-<div class="wrapper">
+  <div class="wrapper">
 
-  <!-- Main Header -->
-  <header class="main-header">
+    <!-- Main Header -->
+    <header class="main-header">
 
-    <!-- Logo -->
-    <a href="javascript:void(0);" class="logo">
-      <!-- mini logo for sidebar mini 50x50 pixels -->
-      <span class="logo-mini"><b>C</b>AR</span>
-      <!-- logo for regular state and mobile devices -->
-      <span class="logo-lg"><b>Smart</b>Car</span>
-    </a>
-
-    <!-- Header Navbar -->
-    <nav class="navbar navbar-static-top" role="navigation">
-      <!-- Sidebar toggle button-->
-      <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
-        <span class="sr-only">Toggle navigation</span>
+      <!-- Logo -->
+      <a href="javascript:void(0);" class="logo">
+        <!-- mini logo for sidebar mini 50x50 pixels -->
+        <span class="logo-mini"><b>C</b>AR</span>
+        <!-- logo for regular state and mobile devices -->
+        <span class="logo-lg"><b>Smart</b>Car</span>
       </a>
-      <!-- Navbar Right Menu -->
-      <div class="navbar-custom-menu">
-        <ul class="nav navbar-nav">
-          <!-- Messages: style can be found in dropdown.less-->
-          <li class="dropdown messages-menu">
-            <!-- Menu toggle button -->
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-              <i class="fa fa-envelope-o"></i>
-              <span class="label label-success">4</span>
-            </a>
-            <ul class="dropdown-menu">
-              <li class="header">You have 4 messages</li>
-              <li>
-                <!-- inner menu: contains the messages -->
-                <ul class="menu">
-                  <li><!-- start message -->
-                    <a href="#">
-                      <div class="pull-left">
-                        <!-- User Image -->
-                        <img src="bower_components/AdminLTE/dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
-                      </div>
-                      <!-- Message title and timestamp -->
-                      <h4>
-                        Support Team
-                        <small><i class="fa fa-clock-o"></i> 5 mins</small>
-                      </h4>
-                      <!-- The message -->
-                      <p>Why not buy a new awesome theme?</p>
-                    </a>
-                  </li>
-                  <!-- end message -->
-                </ul>
-                <!-- /.menu -->
-              </li>
-              <li class="footer"><a href="#">See All Messages</a></li>
-            </ul>
-          </li>
-          <!-- /.messages-menu -->
-          <!-- User Account Menu -->
-          <li class="dropdown user user-menu">
-            <!-- Menu Toggle Button -->
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-              <!-- The user image in the navbar-->
-              <img src="bower_components/AdminLTE/dist/img/user2-160x160.jpg" class="user-image" alt="User Image">
-              <!-- hidden-xs hides the username on small devices so only the image appears. -->
-              <span ng-cloak class="hidden-xs">{{nickname}}</span>
-            </a>
-          </li>
-          <!-- Control Sidebar Toggle Button -->
-          <li>
-            <a href="###" ng-click="logout()" data-toggle="control-sidebar"><i class="fa fa-sign-out"></i></a>
-          </li>
+
+      <!-- Header Navbar -->
+      <nav class="navbar navbar-static-top" role="navigation">
+        <!-- Sidebar toggle button-->
+        <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+          <span class="sr-only">Toggle navigation</span>
+        </a>
+        <!-- Navbar Right Menu -->
+        <div class="navbar-custom-menu">
+          <ul class="nav navbar-nav">
+            <!-- Messages: style can be found in dropdown.less-->
+            <li class="dropdown messages-menu">
+              <!-- Menu toggle button -->
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                <i class="fa fa-envelope-o"></i>
+                <span class="label label-success">4</span>
+              </a>
+              <ul class="dropdown-menu">
+                <li class="header">You have 4 messages</li>
+                <li>
+                  <!-- inner menu: contains the messages -->
+                  <ul class="menu">
+                    <li><!-- start message -->
+                      <a href="#">
+                        <div class="pull-left">
+                          <!-- User Image -->
+                          <img src="bower_components/AdminLTE/dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
+                        </div>
+                        <!-- Message title and timestamp -->
+                        <h4>
+                          Support Team
+                          <small><i class="fa fa-clock-o"></i> 5 mins</small>
+                        </h4>
+                        <!-- The message -->
+                        <p>Why not buy a new awesome theme?</p>
+                      </a>
+                    </li>
+                    <!-- end message -->
+                  </ul>
+                  <!-- /.menu -->
+                </li>
+                <li class="footer"><a href="#">See All Messages</a></li>
+              </ul>
+            </li>
+            <!-- /.messages-menu -->
+            <!-- User Account Menu -->
+            <li class="dropdown user user-menu">
+              <!-- Menu Toggle Button -->
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                <!-- The user image in the navbar-->
+                <img src="bower_components/AdminLTE/dist/img/user2-160x160.jpg" class="user-image" alt="User Image">
+                <!-- hidden-xs hides the username on small devices so only the image appears. -->
+                <span ng-cloak class="hidden-xs">{{nickname}}</span>
+              </a>
+            </li>
+            <!-- Control Sidebar Toggle Button -->
+            <li>
+              <a href="###" ng-click="logout()" data-toggle="control-sidebar"><i class="fa fa-sign-out"></i></a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+    <!-- Left side column. contains the logo and sidebar -->
+    <aside class="main-sidebar">
+
+      <!-- sidebar: style can be found in sidebar.less -->
+      <section class="sidebar">
+
+        <!-- Sidebar user panel (optional) -->
+        <div class="user-panel">
+          <div class="pull-left image">
+            <img src="bower_components/AdminLTE/dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
+          </div>
+          <div class="pull-left info">
+            <p ng-cloak >{{nickname}}</p>
+            <!-- Status -->
+            <a href="#"><i class="fa fa-circle text-success"></i>Online</a>
+          </div>
+        </div>
+        <!-- Sidebar Menu -->
+        <ul class="sidebar-menu">
+          <li class="header">控制台</li>
+          <!-- Optionally, you can add icons to the links -->
+          <li class="active"><a ng-cloak href="{{url_console}}"><i class="fa fa-cubes"></i> <span>设备列表</span></a></li>
         </ul>
-      </div>
-    </nav>
-  </header>
-  <!-- Left side column. contains the logo and sidebar -->
-  <aside class="main-sidebar">
+        <!-- /.sidebar-menu -->
+      </section>
+      <!-- /.sidebar -->
+    </aside>
 
-    <!-- sidebar: style can be found in sidebar.less -->
-    <section class="sidebar">
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+      <!-- Content Header (Page header) -->
+      <section class="content-header">
+        <h1>
+          <ol class="breadcrumb">
+            <li><a href="{{url_console}}"><i class="fa fa-cubes"></i> 设备列表</a></li>
+            <li class="active">设备控制</li>
+          </ol>
+        </h1>
 
-      <!-- Sidebar user panel (optional) -->
-      <div class="user-panel">
-        <div class="pull-left image">
-          <img src="bower_components/AdminLTE/dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
-        </div>
-        <div class="pull-left info">
-          <p ng-cloak >{{nickname}}</p>
-          <!-- Status -->
-          <a href="#"><i class="fa fa-circle text-success"></i>Online</a>
-        </div>
-      </div>
-      <!-- Sidebar Menu -->
-      <ul class="sidebar-menu">
-        <li class="header">控制台</li>
-        <!-- Optionally, you can add icons to the links -->
-        <li class="active"><a ng-cloak href="{{url_console}}"><i class="fa fa-cubes"></i> <span>设备列表</span></a></li>
-      </ul>
-      <!-- /.sidebar-menu -->
-    </section>
-    <!-- /.sidebar -->
-  </aside>
+      </section>
 
-  <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
-    <section class="content-header">
-      <h1>
-        <ol class="breadcrumb">
-          <li><a href="{{url_console}}"><i class="fa fa-cubes"></i> 设备列表</a></li>
-          <li class="active">设备控制</li>
-        </ol>
-      </h1>
-
-    </section>
-
-    <!-- Main content -->
-    <section class="content">
-    <div class="row">
-      <div class="col-xs-12">
-        <div class="box box-info">
-          <div class="box-header with-border">
-            <h3 class="box-title">基本信息</h3>
+      <!-- Main content -->
+      <section class="content">
+        <div class="row">
+          <div class="col-xs-12">
+            <div class="box box-info">
+              <div class="box-header with-border">
+                <h3 class="box-title">基本信息</h3>
+              </div>
+              <div class="box-body">
+                <div class="col-xs-2">
+                  <div class="input-group margin">
+                    <div class="input-group-btn">
+                      <button type="button" class="btn btn-success">主板:</button>
+                    </div>
+                    <input type="text" class="form-control" value="正常" disabled="disabled">
+                  </div>
+                </div>
+                <div class="col-xs-2">
+                  <div class="input-group margin">
+                    <div class="input-group-btn">
+                      <button type="button" class="btn btn-success">马达:</button>
+                    </div>
+                    <input type="text" class="form-control" value="正常" disabled="disabled">
+                  </div>
+                </div>
+                <div class="col-xs-2">
+                  <div class="input-group margin">
+                    <div class="input-group-btn">
+                      <button type="button" class="btn btn-success">舵机:</button>
+                    </div>
+                    <input type="text" class="form-control" value="正常" disabled="disabled">
+                  </div>
+                </div>
+                <div class="col-xs-2">
+                  <div class="input-group margin">
+                    <div class="input-group-btn">
+                      <button type="button" class="btn btn-success">声波避障:</button>
+                    </div>
+                    <input type="text" class="form-control" value="正常" disabled="disabled">
+                  </div>
+                </div>
+                <div class="col-xs-2">
+                  <div class="input-group margin">
+                    <div class="input-group-btn">
+                      <button type="button" class="btn btn-success">红外避障:</button>
+                    </div>
+                    <input type="text" class="form-control" value="正常" disabled="disabled">
+                  </div>
+                </div>
+                <div class="col-xs-2">
+                  <div class="input-group margin">
+                    <div class="input-group-btn">
+                      <button type="button" class="btn btn-success">红外遥控:</button>
+                    </div>
+                    <input type="text" class="form-control" value="正常" disabled="disabled">
+                  </div>
+                </div>
+                <div class="col-xs-2">
+                  <div class="input-group margin">
+                    <div class="input-group-btn">
+                      <button type="button" class="btn btn-success">相机:</button>
+                    </div>
+                    <input type="text" class="form-control" value="正常" disabled="disabled">
+                  </div>
+                </div>
+                <div class="col-xs-2">
+                  <div class="input-group margin">
+                    <div class="input-group-btn">
+                      <button type="button" class="btn btn-success">蓝牙:</button>
+                    </div>
+                    <input type="text" class="form-control" value="正常" disabled="disabled">
+                  </div>
+                </div>
+                <div class="col-xs-2">
+                  <div class="input-group margin">
+                    <div class="input-group-btn">
+                      <button type="button" class="btn btn-success">内存:</button>
+                    </div>
+                    <input type="text" class="form-control" value="30G" disabled="disabled">
+                  </div>
+                </div>
+                <div class="col-xs-2">
+                  <div class="input-group margin">
+                    <div class="input-group-btn">
+                      <button type="button" class="btn btn-success">运行内存:</button>
+                    </div>
+                    <input type="text" class="form-control" value="512MB" disabled="disabled">
+                  </div>
+                </div>
+                <div class="col-xs-2">
+                  <div class="input-group margin">
+                    <div class="input-group-btn">
+                      <button type="button" class="btn btn-success">CPU使用:</button>
+                    </div>
+                    <input type="text" class="form-control" value="30%" disabled="disabled">
+                  </div>
+                </div>
+                <div class="col-xs-2">
+                  <div class="input-group margin">
+                    <div class="input-group-btn">
+                      <button type="button" class="btn btn-success">IO使用率:</button>
+                    </div>
+                    <input type="text" class="form-control" value="30%" disabled="disabled">
+                  </div>
+                </div>
+                <!-- </div>  -->
+              </div>
+            </div>
           </div>
-          <div class="box-body" style="height: 150px;">
-              
-          </div>
         </div>
-      </div>
+        <div class="row">
+          <div class="col-xs-7">
+            <div class="box box-info">
+              <div class="box-header with-border">
+              <h3 class="box-title">视频控制</h3>
+              </div>
+              <div class="box-body" style="padding:0px 0px;">
+                <video class="col-xs-12 video-js" controls preload="none" height="299" poster="public/images/video_init.jpg" data-setup="{}">
+                  <source src="http://视频地址格式1.mp4" type='video/mp4' />
+                </video>
+              </div>
+              <div class="box-footer text-center">
+                <a class="btn btn-app"><i class="fa fa-power-off"></i> 电源</a>
+                <a class="btn btn-app"><i class="fa fa-camera-retro"></i> 截图</a>
+                <a class="btn btn-app"><i class="fa fa-video-camera"></i> 录像</a>
+                <a class="btn btn-app"><i class="fa fa-arrow-left"></i> 相机左转</a>
+                <a class="btn btn-app"><i class="fa fa-arrow-right"></i> 相机右转</a>
+                <a class="btn btn-app"><i class="fa fa-arrow-down"></i> 相机下转</a>
+                <a class="btn btn-app"><i class="fa fa-arrow-up"></i> 相机上转</a>
+              </div>
+            </div>
+          </div>  
+          <div class="col-xs-5">
+            <div class="box box-info">
+              <div class="box-header with-border">
+                <h3 class="box-title">小车控制</h3>
+              </div>
+              <div class="box-body vertical-middle-sm text-center" style="height: 390px;">
+                <div class="alert alert-info alert-dismissible text-left">
+                  <p>小车快捷键:上->W,下->S,左->A,右->D<br/>相机快捷键:上->I,下->K,左->J,右->L</p>
+                </div>
+                <div class="row">
+                  <a class="btn btn-app"><i class="fa fa-arrow-up"></i> 前进</a>
+                </div>
+                <div class="row">
+                  <a class="btn btn-app"><i class="fa fa-arrow-left"></i> 左转</a>
+                  <a class="btn btn-app"><i class="fa fa-hand-peace-o"></i> 手动模式</a>
+                <a class="btn btn-app"><i class="fa fa-arrow-right"></i> 右转</a>
+                </div>
+                <div class="row">
+                  <a class="btn btn-app"><i class="fa fa-arrow-down"></i> 后退</a>
+                </div>
+                <div class="row">
+                <a class="btn btn-app"><i class="fa fa-bluetooth"></i> 打开蓝牙</a>
+                <a class="btn btn-app"><i class="fa fa-bullseye"></i> 红外遥控</a>
+                <a class="btn btn-app"><i class="fa fa-list-alt"></i> 数据列表</a>
+                <a class="btn btn-app"><i class="fa fa-volume-up"></i> 声波避障</a>
+                <a class="btn btn-app"><i class="fa fa-lightbulb-o"></i> 红外避障</a>
+                </div>
+              </div>
+            </div>
+          </div>          
+        </div>
+      </section>
+      <!-- /.content -->
     </div>
-      <div class="row">
-        <div class="col-xs-7">
-          <div class="box box-info">
-            <div class="box-header with-border">
-              <h3 class="box-title">视频</h3>
-            </div>
-            <div class="box-body" style="padding:0px 0px;">
-              <video class="col-xs-12 video-js" controls preload="none" height="299" poster="public/images/video_init.jpg" data-setup="{}">
-                <source src="http://视频地址格式1.mp4" type='video/mp4' />
-              </video>
-            </div>
-            <div class="box-footer">
-              <a class="btn btn-app"><i class="fa fa-power-off"></i> Power</a>
-              <a class="btn btn-app"><i class="fa fa-camera-retro"></i> Screenshot</a>
-              <a class="btn btn-app"><i class="fa fa-video-camera"></i> Videotape</a>
-              <a class="btn btn-app"><i class="fa fa-arrow-left"></i> TurnLeft</a>
-              <a class="btn btn-app"><i class="fa fa-arrow-right"></i> TurnRogjt</a>
-              <a class="btn btn-app"><i class="fa fa-arrow-down"></i> TurnDown</a>
-              <a class="btn btn-app"><i class="fa fa-arrow-up"></i> TurnUp</a>
-            </div>
-          </div>
-        </div>  
-        <div class="col-xs-5">
-          <div class="box box-info">
-            <div class="box-header with-border">
-              <h3 class="box-title">遥控</h3>
-            </div>
-            <div class="box-body" style="height: 390px;">
-              
-            </div>
-          </div>
-        </div>          
-      </div>
-    </section>
-    <!-- /.content -->
-  </div>
-  <!-- /.content-wrapper -->
+    <!-- /.content-wrapper -->
 
-  <!-- Main Footer -->
-  <footer class="main-footer">
-    <!-- Default to the left -->
-    <strong>Copyright &copy; 2017 <a href="https://www.ganktools.com">GankTools</a>.</strong> All rights reserved.
-  </footer>
+    <!-- Main Footer -->
+    <footer class="main-footer">
+      <!-- Default to the left -->
+      <strong>Copyright &copy; 2017 <a href="https://www.ganktools.com">GankTools</a>.</strong> All rights reserved.
+    </footer>
   <!-- Add the sidebar's background. This div must be placed
-       immediately after the control sidebar -->
+  immediately after the control sidebar -->
   <div class="control-sidebar-bg"></div>
 </div>
 <!-- ./wrapper -->
@@ -226,5 +342,5 @@ scratch. This page gets rid of all links and provides the needed markup only.
      Both of these plugins are recommended to enhance the
      user experience. Slimscroll is required when using the
      fixed layout. -->
-</body>
-</html>
+   </body>
+   </html>
