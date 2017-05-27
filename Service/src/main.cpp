@@ -11,6 +11,8 @@
 
 using namespace std;
 
+#define CONFIG_PATH "/etc/smartcar.conf"
+
 void initDaemon(){
     //设置新会话组长，脱离终端
     setsid();
@@ -37,34 +39,35 @@ void initDaemon(){
 }
 
 int main(){
-    pid_t pid_api,pid_dev;
+    // pid_t pid_api,pid_dev;
     //创建API进程
-    if((pid_api = fork()) < 0){
-        //创建进程失败
-        printf("fork api error\n");
-        exit(EXIT_FAILURE);
-    }else if(pid_api == 0){
+    // if((pid_api = fork()) < 0){
+    //     //创建进程失败
+    //     printf("fork api error\n");
+    //     exit(EXIT_FAILURE);
+    // }else if(pid_api == 0){
         // 子进程
-        initDaemon();
-        Api* api = new Api("127.0.0.1",5123);
+        //initDaemon();
+        Api* api = new Api();
+        api->setConfig(CONFIG_PATH);
         api->start();
         delete api;
         return 0;
-    }
+    // }
     //创建DEV进程
-    if((pid_dev = fork()) < 0){
-        //创建进程失败
-        printf("fork dev error\n");
-        exit(EXIT_FAILURE);
-    }else if(pid_dev == 0){
-        //子进程
-        initDaemon();
-        Device* device = new Device();
-        device->start("127.0.0.1",5124);
-        delete device;
-        return 0;
-    }
+    // if((pid_dev = fork()) < 0){
+    //     //创建进程失败
+    //     printf("fork dev error\n");
+    //     exit(EXIT_FAILURE);
+    // }else if(pid_dev == 0){
+    //     //子进程
+    //     initDaemon();
+    //     Device* device = new Device();
+    //     device->start("127.0.0.1",5124);
+    //     delete device;
+    //     return 0;
+    // }
     //父进程
-    exit(EXIT_SUCCESS);
+    // exit(EXIT_SUCCESS);
     return 0;
 }
