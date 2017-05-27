@@ -50,7 +50,7 @@ int main(){
         //initDaemon();
         Api* api = new Api();
         api->setConfig(CONFIG_PATH);
-        api->start();
+        api->startRun();
         delete api;
         return 0;
     // }

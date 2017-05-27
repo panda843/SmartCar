@@ -68,10 +68,6 @@ void Api::call(struct evhttp_request* request, const char* str) {
   }
 }
 
-void Api::start(){
-  this->startRun();
-}
-
 void Api::read_cb(struct evhttp_request* request){
     this->call(request,this->getRequestAction());
 }

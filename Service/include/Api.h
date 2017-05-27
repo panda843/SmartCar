@@ -21,8 +21,6 @@ class Api: public ApiServer{
         Api();
         //析构函数
         ~Api();
-        //API运行
-        void start();
         //设置配置文件路径
         void setConfig(const char* path);
     private:
