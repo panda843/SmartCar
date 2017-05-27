@@ -46,9 +46,9 @@ void Device::sendData(Conn* &conn,const string resp_data){
 
 void Device::handlerGetDeviceBaseInfo(Conn* &conn, Json::Value &request_data){
     if(request_data["data"]["is_api"].asBool()){
-        this->sendData(conn,request_data.toStyledString());
+        this->sendData(conn,request_data.toStyledString().c_str());
     }else{
-        this->sendApiData(request_data.toStyledString());
+        this->sendApiData(request_data.toStyledString().c_str());
     }
 }
 
@@ -157,7 +157,7 @@ Conn* Device::getConnBaySocketFd(int sock_fd){
     map<int,Conn*>::iterator iter;
     for(iter=this->sock_list.begin(); iter!=this->sock_list.end(); iter++){
         if (iter->first == sock_fd){  
-            conn = it->second; 
+            conn = iter->second; 
         }
     }
     return conn;

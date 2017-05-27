@@ -221,9 +221,10 @@ void Api::device_info(struct evhttp_request* request){
       root["message"] = Json::Value("ok");
       root["data"] = re_json;
     }else{
+      Json::Value temp;
       root["status"] = Json::Value(false);
       root["message"] = Json::Value("获取设备数据失败");
-      root["data"] = NULL;
+      root["data"] = temp;
     }
     string json = root.toStyledString();
     this->sendJson(request,json.c_str()); 
