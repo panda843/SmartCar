@@ -6,6 +6,7 @@
 #include "TcpEvent.h"
 #include "json/json.h"
 #include <sys/fcntl.h>
+#include <stdlib.h>
 #include <set>
 #include <map>
 #include <string>

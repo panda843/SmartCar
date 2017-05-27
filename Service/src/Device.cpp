@@ -103,7 +103,7 @@ void Device::ReadApiEvent(const char *str){
     Json::Value data;
     if(reader.parse(str, data)){
         string func = data["protocol"].asString();
-        int sock_fd = data["data"]["sockfd"].asInt();
+        int sock_fd = atoi(data["data"]["sockfd"].asString.c_str());
         Conn* conn = this->getConnBaySocketFd(sock_fd);
         if(conn != NULL){
             this->call(conn,data,func);
