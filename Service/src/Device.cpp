@@ -112,14 +112,14 @@ void Device::ReadApiEvent(const char *str){
             Json::Value data;
             root["protocol"] = API_NOT_FIND_DEVICE;
             root["data"] = data;
-            this->sendApiData(root.toStyledString());
+            this->sendApiData(root.toStyledString().c_str());
         }
     }else{
         Json::Value root;
         Json::Value data;
         root["protocol"] = API_NOT_FIND;
         root["data"] = data;
-        this->sendApiData(root.toStyledString());
+        this->sendApiData(root.toStyledString().c_str());
     }
 }
 
