@@ -153,6 +153,15 @@
                 response.data.data[index].status = (status == 1) ? "正常":"异常";
             } 
             $scope.deviceList = response.data.data;
+        }).catch(function(response) {
+            console.log(response);
+            console.log(response.status);
+            if(response.status == 502 || response.status == -1){
+                alert("获取服务器数据失败");
+            }else if(response.status == 401){
+                alert("身份认证过期啦");
+                User.logOut();
+            }
         });
         
         $scope.redirectControl = function(device_id,sockfd){
@@ -166,7 +175,7 @@
         if(User.isLogin()){
             Route.Redirect("index");
         }
-        $scope.submit = function(){
+        var sendLoginPostData = function(){
             $scope.success = true;
             $scope.error = true;
             var name = String($scope.username);
@@ -200,6 +209,18 @@
                     $scope.message = response.data.message;
                 }
             });
+        } 
+        $scope.keySubmit = function(event){
+            var keycode = window.event?e.keyCode:e.which; 
+            console.log(event);
+            //回车键按下
+            var keycode = window.event?e.keyCode:e.which;
+            if(keycode==13){
+                sendLoginPostData();
+            }
+        }
+        $scope.submit = function(){
+            sendLoginPostData();
         }
     });
 }());
