@@ -62,6 +62,13 @@
                 if(cval!=null)document.cookie= en.encrypt(name) + "="+cval+";expires="+exp.toGMTString()+ ";path=/";
             }
         }
+        Cookie.clearCookie = function(){
+            var keys=document.cookie.match(/[^ =;]+(?=\=)/g); 
+            if (keys) { 
+            for (var i = keys.length; i--;) 
+                document.cookie=keys[i]+'=0;expires=' + new Date(0).toUTCString()+ ";path=/";
+            } 
+        }
         return Cookie;
     }); 
 
@@ -117,11 +124,7 @@
             return token;
         }
         User.logOut = function(){
-            Cookie.delCookie("UserName");
-            Cookie.delCookie("UserNickName");
-            Cookie.delCookie("UserHead");
-            Cookie.delCookie("UserID");
-            Cookie.delCookie("token");
+            Cookie.clearCookie();
             Route.Redirect("login");
         }
         return User;  
