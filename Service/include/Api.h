@@ -5,6 +5,7 @@
 #include "json/json.h"
 #include "MD5.h"
 #include "Config.h"
+#include "Protocol.h"
 #include <unistd.h>
 #include <sys/fcntl.h>
 
@@ -44,6 +45,8 @@ class Api: public ApiServer{
         void user_register(struct evhttp_request* request);
         //设备列表
         void device_list(struct evhttp_request* request);
+        //获取设备基本信息
+        void device_info(struct evhttp_request* request);
         //调用请求对应的方法
         void call(struct evhttp_request* request, const char* str);
     protected:

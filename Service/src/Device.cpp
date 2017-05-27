@@ -12,25 +12,6 @@ Device::~Device(){
 
 }
 
-void Device::setPipe(int *read_fd,int *write_fd){
-  this->sock_write_pipe = write_fd;
-  this->sock_read_pipe = read_fd;
-  close(this->sock_write_pipe[0]);
-  close(this->sock_read_pipe[1]);
-  fcntl(this->sock_write_pipe[1], F_SETFL, O_NONBLOCK);
-  fcntl(this->sock_read_pipe[0], F_SETFL, O_NONBLOCK);
-}
-//向Api进程写输入
-void Device::writePipe(const char *str){
-  write(this->sock_write_pipe[1], str, strlen(str));
-}
-//读Api进程输入
-char* Device::readPipe(){
-  char* str = new char[SOCK_PIPE_MAXDATA];
-  read(this->sock_read_pipe[0], str, SOCK_PIPE_MAXDATA);
-  return str;
-}
-
 void Device::initApiList() {
   device_api_list[API_DEVICE_INFO] = &Device::handlerDeverInfo;
 }
@@ -106,6 +87,11 @@ void Device::start(const char* ip,unsigned int port){
     this->SetPort(port);
     this->SetAddress(ip);
     this->StartRun();
+}
+
+void Device::ReadApiEvent(const char *str){
+    printf("read api data:%s\n",str);
+    this->sendApiData(str);
 }
 
 void Device::ReadEvent(Conn *conn){

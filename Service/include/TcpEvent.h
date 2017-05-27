@@ -25,6 +25,7 @@ using std::map;
 #include "event/util.h"
 
 #define THREAD_NUMBER 5
+#define SOCK_PIPE_MAXDATA 2048
 
 class TcpEventServer;
 class Conn;
@@ -122,7 +123,12 @@ private:
     //存储各个子线程信息的数组        
     LibeventThread *m_Threads;
     //自定义的信号处理         
-    map<int, event*> m_SignalEvents;    
+    map<int, event*> m_SignalEvents;
+    //通信管道
+    int* sock_write_pipe;
+    int* sock_read_pipe;
+    char write_pipe_data[SOCK_PIPE_MAXDATA];  
+    pthread_mutex_t mutex_write;
 public:
     static const int EXIT_CODE = -1;
 private:
@@ -140,6 +146,10 @@ private:
     static void WriteEventCb(struct bufferevent *bev, void *data); 
     //关闭
     static void CloseEventCb(struct bufferevent *bev, short events, void *data);
+    //发送PIPE数据
+    static void* createPthreadSendPipeData(void *arg);
+    //读取PIPE数据
+    static void* createPthreadReadPipeData(void *arg);
 protected:
     //新建连接成功后，会调用该函数
     virtual void ConnectionEvent(Conn *conn) { }
@@ -151,6 +161,10 @@ protected:
     virtual void CloseEvent(Conn *conn, short events) { }
     //发生致命错误（如果创建子线程失败等）后，会调用该函数,该函数的默认操作是输出错误提示，终止程序
     virtual void ErrorQuit(const char *str);
+    //接受到API进程传递的数据调用
+    virtual void ReadApiEvent(const char *str) { }
+    //发送API数据
+    void sendApiData(const char* str);
 public:
     //构造函数
     TcpEventServer();
@@ -172,6 +186,8 @@ public:
     event *AddTimerEvent(void(*ptr)(int, short, void*),timeval tv, bool once);
     //删除定时事件
     bool DeleteTImerEvent(event *ev);
+    //设置通信管道
+    void setPipe(int *read_fd,int *write_fd);
 };
 
 #endif

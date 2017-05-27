@@ -131,13 +131,17 @@
         $scope.url_console = Route.getRedirectUrl("index");
         $scope.nickname = User.getNickName();
         $scope.logout = User.logOut;
+        $scope.setCameraPower = function(){
+            $http.get(api_url+"/device/info"+"?token="+User.getToken()+"&sockfd="+Cookie.getCookie("control_sockfd")).then(function successCallback(response) {
+                console.log(response.data.data);
+            });
+        }
     });
     app.controller('IndexCtl',function($scope,User,Route,Cookie,$http) {
         if(!User.isLogin()){ Route.Redirect("login"); }
         $scope.url_console = Route.getRedirectUrl("index");
         $scope.nickname = User.getNickName();
         $scope.logout = User.logOut;
-
         $http.get(api_url+"/device/list"+"?token="+User.getToken()).then(function successCallback(response) {
             for(var index in response.data.data){
                 var online = response.data.data[index].online;
@@ -148,8 +152,10 @@
             $scope.deviceList = response.data.data;
         });
         
-        $scope.redirectControl = function(device_id){
-            Cookie.setCookie("control_use_id",device_id);
+        $scope.redirectControl = function(device_id,sockfd){
+            Cookie.setCookie("control_device_id",device_id);
+            Cookie.setCookie("control_sockfd",sockfd);
+            console.log(sockfd);
             Route.Redirect("control");
         }
     });

@@ -99,6 +99,57 @@ TcpEventServer::~TcpEventServer()
     delete [] m_Threads;
 }
 
+void* TcpEventServer::createPthreadSendPipeData(void *arg){
+    TcpEventServer* ser = (TcpEventServer*)arg;
+    while(true){
+        if(strlen(ser->write_pipe_data) != 0){
+            pthread_mutex_lock(&ser->mutex_write);
+            printf("send data:%s\n", ser->write_pipe_data);
+            write(ser->sock_write_pipe[1], ser->write_pipe_data, sizeof(ser->write_pipe_data));
+            memset(ser->write_pipe_data,0,sizeof(ser->write_pipe_data));
+            pthread_mutex_unlock(&ser->mutex_write);
+        }
+    }
+}
+void* TcpEventServer::createPthreadReadPipeData(void *arg){
+    TcpEventServer* ser = (TcpEventServer*)arg;
+    while(true){
+        char str[SOCK_PIPE_MAXDATA] = {0};
+        read(ser->sock_read_pipe[0], str, SOCK_PIPE_MAXDATA);
+        ser->ReadApiEvent(str);
+    }
+}
+
+void TcpEventServer::setPipe(int *read_fd,int *write_fd){
+  pthread_t thread_write_pid,thread_read_pid;
+  this->sock_write_pipe = write_fd;
+  this->sock_read_pipe = read_fd;
+  close(this->sock_write_pipe[0]);
+  close(this->sock_read_pipe[1]);
+  if(pthread_mutex_init(&mutex_write,NULL) != 0){  
+    printf("Init metux error.");  
+    exit(0);  
+  }  
+  if(!pthread_create(&thread_write_pid,NULL,createPthreadSendPipeData,(void*)this)){
+    pthread_detach(thread_write_pid);
+  }else{
+    printf("Device PIPE Pthread create failed\n");
+    exit(0);
+  }
+  if(!pthread_create(&thread_read_pid,NULL,createPthreadReadPipeData,(void*)this)){
+    pthread_detach(thread_read_pid);
+  }else{
+    printf("Device PIPE Pthread create failed\n");
+    exit(0);
+  }
+}
+void TcpEventServer::sendApiData(const char* str){
+    pthread_mutex_lock(&this->mutex_write);
+    memset(this->write_pipe_data,0,sizeof(this->write_pipe_data));
+    strcpy(this->write_pipe_data,str);
+    pthread_mutex_unlock(&this->mutex_write);
+}
+
 void TcpEventServer::ErrorQuit(const char *str)
 {
     //输出错误信息，退出程序

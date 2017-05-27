@@ -24,8 +24,6 @@ void Api::setPipe(int* write_fd,int* read_fd){
   this->sock_read_pipe = read_fd;
   close(this->sock_write_pipe[0]);
   close(this->sock_read_pipe[1]);
-  fcntl(this->sock_write_pipe[1], F_SETFL, O_NONBLOCK);
-  fcntl(this->sock_read_pipe[0], F_SETFL, O_NONBLOCK);
 }
 
 void Api::setConfig(const char* path){
@@ -66,6 +64,7 @@ void Api::initApiList() {
   this->api_list["user_login"] = &Api::user_login;
   this->api_list["user_register"] = &Api::user_register;
   this->api_list["device_list"] = &Api::device_list;
+  this->api_list["device_info"] = &Api::device_info;
 }
 
 /**
@@ -180,6 +179,42 @@ void Api::device_list(struct evhttp_request* request){
     }else{
       root["data"] = data;
     }
+    string json = root.toStyledString();
+    this->sendJson(request,json.c_str()); 
+  }else{
+    evhttp_send_error(request, HTTP_BADREQUEST, 0);
+  }
+}
+
+//获取设备基本信息
+void Api::device_info(struct evhttp_request* request){
+  if (evhttp_request_get_command(request) == EVHTTP_REQ_GET) {
+    Json::Value root;
+    Json::Value data;
+    const char* token = evhttp_find_header(this->getRequestHeader(),"token");
+    const char* sockfd = evhttp_find_header(this->getRequestHeader(),"sockfd");
+
+    //判断token是否为空
+    if(token == NULL){
+      evhttp_send_error(request, 401, 0);
+      return;
+    }
+    //检查token是否合法
+    if(!this->checkToken(string(token,strlen(token)))){
+      evhttp_send_error(request, 401, 0);
+      return;
+    }
+    //给device发送信息
+    Json::Value device_root;
+    Json::Value device_data;
+    device_root["protocol"] = API_DEVICE_BASE_INFO;
+    device_data["sockfd"] = sockfd;
+    device_root["data"] = device_data;
+    string str = device_root.toStyledString();
+    this->writePipe(str.c_str());
+    //返回数据
+    data["info"] = this->readPipe();
+    root["data"] = data;
     string json = root.toStyledString();
     this->sendJson(request,json.c_str()); 
   }else{
