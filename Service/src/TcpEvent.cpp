@@ -110,6 +110,7 @@ void* TcpEventServer::createPthreadSendPipeData(void *arg){
             pthread_mutex_unlock(&ser->mutex_write);
         }
     }
+    return NULL;
 }
 void* TcpEventServer::createPthreadReadPipeData(void *arg){
     TcpEventServer* ser = (TcpEventServer*)arg;
@@ -118,6 +119,7 @@ void* TcpEventServer::createPthreadReadPipeData(void *arg){
         read(ser->sock_read_pipe[0], str, SOCK_PIPE_MAXDATA);
         ser->ReadApiEvent(str);
     }
+    return NULL;
 }
 
 void TcpEventServer::setPipe(int *read_fd,int *write_fd){
