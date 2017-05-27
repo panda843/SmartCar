@@ -35,9 +35,11 @@ class Device : public TcpEventServer{
         map<int,Conn*> sock_list;
         MysqlHelper* mysql;
         void handlerDeverInfo(Conn* &conn, Json::Value &request_data);
+        void handlerGetDeviceBaseInfo(Conn* &conn, Json::Value &request_data);
         void initApiList();
         void sendData(Conn* &conn,const string resp_data);
         void call(Conn* &conn, Json::Value &request_data,const string func);
+        Conn* getConnBaySocketFd(int sock_fd);
 };
 
 /**

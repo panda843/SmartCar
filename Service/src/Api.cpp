@@ -190,7 +190,6 @@ void Api::device_list(struct evhttp_request* request){
 void Api::device_info(struct evhttp_request* request){
   if (evhttp_request_get_command(request) == EVHTTP_REQ_GET) {
     Json::Value root;
-    Json::Value data;
     const char* token = evhttp_find_header(this->getRequestHeader(),"token");
     const char* sockfd = evhttp_find_header(this->getRequestHeader(),"sockfd");
 
@@ -209,12 +208,23 @@ void Api::device_info(struct evhttp_request* request){
     Json::Value device_data;
     device_root["protocol"] = API_DEVICE_BASE_INFO;
     device_data["sockfd"] = sockfd;
+    device_data["is_api"] = true;
     device_root["data"] = device_data;
     string str = device_root.toStyledString();
     this->writePipe(str.c_str());
     //返回数据
-    data["info"] = this->readPipe();
-    root["data"] = data;
+    char* re_data = this->readPipe();
+    Json::Reader reader;
+    Json::Value re_json;
+    if(reader.parse(re_data, re_json)){
+      root["status"] = Json::Value(true);
+      root["message"] = Json::Value("ok");
+      root["data"] = re_json;
+    }else{
+      root["status"] = Json::Value(false);
+      root["message"] = Json::Value("获取设备数据失败");
+      root["data"] = NULL;
+    }
     string json = root.toStyledString();
     this->sendJson(request,json.c_str()); 
   }else{

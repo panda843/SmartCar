@@ -14,6 +14,7 @@ Device::~Device(){
 
 void Device::initApiList() {
   device_api_list[API_DEVICE_INFO] = &Device::handlerDeverInfo;
+  device_api_list[API_DEVICE_BASE_INFO] = &Device::handlerGetDeviceBaseInfo;
 }
 
 void Device::call(Conn* &conn, Json::Value &request_data,const string func){
@@ -41,6 +42,14 @@ void Device::sendData(Conn* &conn,const string resp_data){
     resp_data.copy(data,resp_data.length(),0);
     conn->AddToWriteBuffer(data, resp_data.length());
     delete[] data;
+}
+
+void Device::handlerGetDeviceBaseInfo(Conn* &conn, Json::Value &request_data){
+    if(request_data["data"]["is_api"].asBool()){
+        this->sendData(conn,request_data.toStyledString());
+    }else{
+        this->sendApiData(request_data.toStyledString());
+    }
 }
 
 void Device::handlerDeverInfo(Conn* &conn, Json::Value &request_data){
@@ -90,8 +99,28 @@ void Device::start(const char* ip,unsigned int port){
 }
 
 void Device::ReadApiEvent(const char *str){
-    printf("read api data:%s\n",str);
-    this->sendApiData(str);
+    Json::Reader reader;
+    Json::Value data;
+    if(reader.parse(str, data)){
+        string func = data["protocol"].asString();
+        int sock_fd = data["data"]["sockfd"].asInt();
+        Conn* conn = this->getConnBaySocketFd(sock_fd);
+        if(conn != NULL){
+            this->call(conn,data,func);
+        }else{
+            Json::Value root;
+            Json::Value data;
+            root["protocol"] = API_NOT_FIND_DEVICE;
+            root["data"] = data;
+            this->sendApiData(root.toStyledString());
+        }
+    }else{
+        Json::Value root;
+        Json::Value data;
+        root["protocol"] = API_NOT_FIND;
+        root["data"] = data;
+        this->sendApiData(root.toStyledString());
+    }
 }
 
 void Device::ReadEvent(Conn *conn){
@@ -121,6 +150,17 @@ void Device::WriteEvent(Conn *conn){
 void Device::ConnectionEvent(Conn *conn){
     int sock_fd = conn->GetFd();
     this->sock_list[sock_fd] = conn;
+}
+
+Conn* Device::getConnBaySocketFd(int sock_fd){
+    Conn* conn = NULL;
+    map<int,Conn*>::iterator iter;
+    for(iter=this->sock_list.begin(); iter!=this->sock_list.end(); iter++){
+        if (iter->first == sock_fd){  
+            conn = it->second; 
+        }
+    }
+    return conn;
 }
 
 void Device::CloseEvent(Conn *conn, short events){

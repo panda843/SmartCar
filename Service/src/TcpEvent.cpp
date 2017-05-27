@@ -104,7 +104,6 @@ void* TcpEventServer::createPthreadSendPipeData(void *arg){
     while(true){
         if(strcmp(ser->write_pipe_data, "\0") != 0){
             pthread_mutex_lock(&ser->mutex_write);
-            printf("send data:%s\n", ser->write_pipe_data);
             write(ser->sock_write_pipe[1], ser->write_pipe_data, sizeof(ser->write_pipe_data));
             memset(ser->write_pipe_data,0,sizeof(ser->write_pipe_data));
             pthread_mutex_unlock(&ser->mutex_write);
