@@ -127,7 +127,7 @@ private:
     //通信管道
     int* sock_write_pipe;
     int* sock_read_pipe;
-    char write_pipe_data[SOCK_PIPE_MAXDATA];  
+    char write_pipe_data[SOCK_PIPE_MAXDATA] = {0};  
     pthread_mutex_t mutex_write;
 public:
     static const int EXIT_CODE = -1;
