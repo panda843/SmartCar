@@ -9,6 +9,25 @@ Api::~Api(){
     delete this->mysql;
 }
 
+//向device进程写输入
+void Api::writePipe(const char *str){
+  write(this->sock_write_pipe[1], str, strlen(str));
+}
+//读device进程输入
+char* Api::readPipe(){
+  char* str = new char[SOCK_PIPE_MAXDATA];
+  read(this->sock_read_pipe[0], str, SOCK_PIPE_MAXDATA);
+  return str;
+}
+void Api::setPipe(int* write_fd,int* read_fd){
+  this->sock_write_pipe = write_fd;
+  this->sock_read_pipe = read_fd;
+  close(this->sock_write_pipe[0]);
+  close(this->sock_read_pipe[1]);
+  fcntl(this->sock_write_pipe[1], F_SETFL, O_NONBLOCK);
+  fcntl(this->sock_read_pipe[0], F_SETFL, O_NONBLOCK);
+}
+
 void Api::setConfig(const char* path){
     Config config;
     //检测配置文件是否存在

@@ -5,10 +5,13 @@
 #include "json/json.h"
 #include "MD5.h"
 #include "Config.h"
+#include <unistd.h>
+#include <sys/fcntl.h>
 
 using namespace mysqlhelper;
 
 class Api;
+#define SOCK_PIPE_MAXDATA 2048
 
 #ifndef DEFINE_API_STRUCT
 #define DEFINE_API_STRUCT
@@ -23,11 +26,16 @@ class Api: public ApiServer{
         ~Api();
         //设置配置文件路径
         void setConfig(const char* path);
+        //设置通信管道
+        void setPipe(int* write_fd,int* read_fd);
     private:
         //api列表
         map<string, pmf> api_list;
         //Mysql
         MysqlHelper* mysql;
+        //通信管道
+        int* sock_write_pipe;
+        int* sock_read_pipe;
         //初始化API列表
         void initApiList();
         //用户登录
@@ -43,6 +51,10 @@ class Api: public ApiServer{
         void read_cb(struct evhttp_request* request);
         //libevent signal 信号处理
         void signal_cb(evutil_socket_t sig, short events, struct event_base* event);
+        //向device进程写输入
+        void writePipe(const char *str);
+        //读device进程输入
+        char* readPipe();
 };
 
 #endif

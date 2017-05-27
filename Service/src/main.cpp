@@ -39,35 +39,43 @@ void initDaemon(){
 }
 
 int main(){
-    // pid_t pid_api,pid_dev;
+    pid_t pid_api,pid_dev;
+    int fd_writ[2],fd_read[2];
+    //创建写管道
+    if( pipe(fd_writ) < 0 || pipe(fd_read) < 0){  
+        printf("create pipe error\n");  
+        exit(EXIT_FAILURE);
+    }  
     //创建API进程
-    // if((pid_api = fork()) < 0){
-    //     //创建进程失败
-    //     printf("fork api error\n");
-    //     exit(EXIT_FAILURE);
-    // }else if(pid_api == 0){
-        // 子进程
-        //initDaemon();
+    if((pid_api = fork()) < 0){
+        //创建进程失败
+        printf("fork api error\n");
+        exit(EXIT_FAILURE);
+    }else if(pid_api == 0){
+        //子进程
+        initDaemon();
         Api* api = new Api();
+        api->setPipe(fd_writ,fd_read);
         api->setConfig(CONFIG_PATH);
         api->startRun();
         delete api;
         return 0;
-    // }
+    }
     //创建DEV进程
-    // if((pid_dev = fork()) < 0){
-    //     //创建进程失败
-    //     printf("fork dev error\n");
-    //     exit(EXIT_FAILURE);
-    // }else if(pid_dev == 0){
-    //     //子进程
-    //     initDaemon();
-    //     Device* device = new Device();
-    //     device->start("127.0.0.1",5124);
-    //     delete device;
-    //     return 0;
-    // }
+    if((pid_dev = fork()) < 0){
+        //创建进程失败
+        printf("fork dev error\n");
+        exit(EXIT_FAILURE);
+    }else if(pid_dev == 0){
+        //子进程
+        initDaemon();
+        Device* device = new Device();
+        device->setPipe(fd_writ,fd_read);
+        device->start("127.0.0.1",5124);
+        delete device;
+        return 0;
+    }
     //父进程
-    // exit(EXIT_SUCCESS);
+    exit(EXIT_SUCCESS);
     return 0;
 }
