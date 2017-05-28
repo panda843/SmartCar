@@ -71,7 +71,25 @@
         }
         return Cookie;
     }); 
-
+    app.factory('Device', function(Cookie,Route) {
+        var Device = {};
+        Device.sendKeyboardEvent = function(key){
+            switch(key){
+                case 119:
+                    //W
+                break;
+                case 115:
+                    //S
+                break;
+                case 97:
+                    //A
+                break;
+                case 100:
+                    //D
+                break;
+            }
+        }
+    });
     app.factory('User', function(Cookie,Route) {  
         var User = {};  
         var username;
@@ -129,11 +147,18 @@
         }
         return User;  
     });
-    app.controller('ControlCtl',function($scope,User,Cookie,Route,$http){
+    app.controller('ControlCtl',function($scope,$document,Device,User,Cookie,Route,$http){
         if(!User.isLogin()){ Route.Redirect("login"); }
         $scope.url_console = Route.getRedirectUrl("index");
         $scope.nickname = User.getNickName();
         $scope.logout = User.logOut;
+        $document.bind("keypress", function(event) {
+            $scope.$apply(function (){
+                var keycode = window.event?event.keyCode:event.which;
+                console.log(keycode);
+                Device.sendKeyboardEvent(keycode);
+            })
+        });
         $scope.setCameraPower = function(){
             $http.get(api_url+"/device/info"+"?token="+User.getToken()+"&sockfd="+Cookie.getCookie("control_sockfd")).then(function successCallback(response) {
                 console.log(response.data.data);
@@ -171,7 +196,7 @@
             Route.Redirect("control");
         }
     });
-    app.controller('LoginCtl',function($scope,User,Route,$http) {
+    app.controller('LoginCtl',function($scope,$document,User,Route,$http) {
         if(User.isLogin()){
             Route.Redirect("index");
         }
@@ -209,16 +234,15 @@
                     $scope.message = response.data.message;
                 }
             });
-        } 
-        $scope.keySubmit = function(event){
-            var keycode = window.event?e.keyCode:e.which; 
-            console.log(event);
-            //回车键按下
-            var keycode = window.event?e.keyCode:e.which;
-            if(keycode==13){
-                sendLoginPostData();
-            }
         }
+        $document.bind("keypress", function(event) {
+            $scope.$apply(function (){
+                var keycode = window.event?event.keyCode:event.which;
+                if(keycode==13){
+                    sendLoginPostData();
+                }
+            })
+        });
         $scope.submit = function(){
             sendLoginPostData();
         }
