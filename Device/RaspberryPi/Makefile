@@ -21,7 +21,7 @@ VERSION = 1.0.0.0
 TARGET = client$(VERSION)  
 
 all:$(TARGET)  
-	$(MV) $(TARGET) $(BIN_PATH)  
+	$(MV) $(TARGET) $(BIN_PATH)/$(TARGET)
 	$(LN) $(BIN_PATH)/$(TARGET) $(BIN_PATH)/client   
 $(TARGET) : $(OBJS)  
 	$(CXX) $^ -o $@ -L$(LIB_PATH) $(LIBS)  
