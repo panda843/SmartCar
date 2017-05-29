@@ -24,7 +24,7 @@ class Client;
 
 #ifndef _CLIENT_STRUCT_
 #define _CLIENT_STRUCT_
-typedef void (Client::*cfunc)(struct bufferevent *,Json::Value*);
+typedef void (Client::*cfunc)(struct bufferevent *,Json::Value&);
 #endif
 
 using namespace std;
@@ -45,7 +45,7 @@ private:
     void sendDeviceInfo(struct bufferevent * bufEvent);
     string getMacAddress();
     void call(struct bufferevent * bufEvent,Json::Value &request_data,const string func);
-    void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value *data);
+    void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data);
 };
 
 #endif  

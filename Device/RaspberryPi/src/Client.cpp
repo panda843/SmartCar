@@ -42,7 +42,7 @@ void Client::sendDeviceInfo(struct bufferevent * bufEvent){
     bufferevent_write(bufEvent, json.c_str(), json.length());
 }
 
-void Client::handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value *data){
+void Client::handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
     printf("call getDeviceBaseInfo func:%s\n",data->toStyledString().c_str());
 }
 
@@ -56,7 +56,7 @@ void Client::call(struct bufferevent * bufEvent,Json::Value &request_data,const 
         return;
     }
     if (client_api_list.count(func)) {
-        (this->*(client_api_list[func]))(bufEvent,request_data);
+        (this->*(client_api_list[func]))(bufEvent,&request_data);
     } else {
         Json::Value root;
         Json::Value data;
@@ -78,7 +78,7 @@ void Client::responseHandler(struct bufferevent * bufEvent, void * args){
     const char * pBody = (const char *)evbuffer_pullup(pInput, nLen);
     if(reader.parse(pBody, data)){
         string func = data["protocol"].asString();
-        client->call(bufEvent,&data,func);
+        client->call(bufEvent,data,func);
     }else{
         Json::Value root;
         Json::Value data;
