@@ -9,7 +9,7 @@
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <net/if.h>
-
+#include <map>
 #include "Protocol.h"
 #include "json/json.h"
 #include "event/event.h"  
@@ -18,7 +18,14 @@
 #include "event/thread.h"
 
 #define DEVICE_NAME "SmartCar"
-#define WLAN_NAME "enp4s0"
+#define WLAN_NAME "wlan0"
+
+class Client;
+
+#ifndef _CLIENT_STRUCT_
+#define _CLIENT_STRUCT_
+typedef void (Client::*cfunc)(Json::Value&);
+#endif
 
 using namespace std;
 
@@ -31,10 +38,14 @@ public:
     static void requestHandler(struct bufferevent * bufEvent, void * args);
     static void eventHandler(struct bufferevent * bufEvent, short sEvent, void * args);
 private:
+    map<string,cfunc> client_api_list;
     struct bufferevent* bufferEvent;
     struct event_base* baseEvent;
+    void initApiList();
     void sendDeviceInfo(struct bufferevent * bufEvent);
     string getMacAddress();
+    void call(struct bufferevent * bufEvent,Json::Value &request_data,const string func);
+    void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value *data);
 };
 
 #endif  

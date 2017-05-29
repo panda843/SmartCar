@@ -1,13 +1,15 @@
 #include "Client.h"
 
-Client* client_ptr;
-
 Client::Client(){
-    client_ptr = this;
+    this->initApiList();
 }
 
 Client::~Client(){
     
+}
+
+void Client::initApiList() {
+  this->client_api_list[API_DEVICE_BASE_INFO] = &Client::handlerGetDeviceBaseInfo;
 }
 
 string Client::getMacAddress(){
@@ -40,21 +42,56 @@ void Client::sendDeviceInfo(struct bufferevent * bufEvent){
     bufferevent_write(bufEvent, json.c_str(), json.length());
 }
 
+void Client::handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value *data){
+    printf("call getDeviceBaseInfo func:%s\n",data.toStyledString().c_str());
+}
+
+void Client::call(struct bufferevent * bufEvent,Json::Value &request_data,const string func){
+    if(func.length() == 0){
+        Json::Value root;
+        Json::Value data;
+        root["protocol"] = API_NOT_FIND;
+        root["data"] = data;
+        bufferevent_write(bufEvent,root.c_str(),root.length());
+        return;
+    }
+    if (device_api_list.count(func)) {
+        (this->*(client_api_list[func]))(bufEvent,request_data);
+    } else {
+        Json::Value root;
+        Json::Value data;
+        root["protocol"] = API_NOT_FIND;
+        root["data"] = data;
+        string not_str = root.toStyledString();
+        bufferevent_write(conn,not_str.c_str(),not_str.length());
+    }
+}
+
 void Client::responseHandler(struct bufferevent * bufEvent, void * args){
+    Client* client = (Client*)args;
+    Json::Reader reader;
+    Json::Value data;
     //获取输入缓存
     struct evbuffer * pInput = bufferevent_get_input(bufEvent);
     //获取输入缓存数据的长度
     int nLen = evbuffer_get_length(pInput);
     //获取数据的地址
     const char * pBody = (const char *)evbuffer_pullup(pInput, nLen);
-    printf("this Service response data:%s\n",pBody );
-    //进行数据处理
-    //写到输出缓存,由bufferevent的可写事件读取并通过fd发送
-    //bufferevent_write(bufEvent, pResponse, nResLen);
-
+    if(reader.parse(data, pBody)){
+        string func = data["protocol"].asString();
+        client->call(bufEvent,data,func);
+    }else{
+        Json::Value root;
+        Json::Value data;
+        root["protocol"] = API_NOT_FIND;
+        root["data"] = data;
+        string not_str = root.toStyledString();
+        bufferevent_write(not_str.c_str(),not_str.length());
+    }
     return ;
 }
 void Client::requestHandler(struct bufferevent * bufEvent, void * args){
+    Client* client = (Client*)args;
     struct evbuffer *output = bufferevent_get_output(bufEvent);
     //当输出缓冲区的内容长度为0，即全部输出之后
     if (evbuffer_get_length(output) == 0) {
@@ -64,6 +101,7 @@ void Client::requestHandler(struct bufferevent * bufEvent, void * args){
     }
 }
 void Client::eventHandler(struct bufferevent * bufEvent, short sEvent, void * args){
+    Client* client = (Client*)args;
     //请求的连接过程已经完成
     if(BEV_EVENT_CONNECTED == sEvent){
         bufferevent_enable(bufEvent, EV_READ);
@@ -72,7 +110,7 @@ void Client::eventHandler(struct bufferevent * bufEvent, short sEvent, void * ar
         struct timeval tTimeout = {10, 0};
         bufferevent_set_timeouts( bufEvent, &tTimeout, NULL);
         //发送基本信息
-        client_ptr->sendDeviceInfo(bufEvent);
+        client->sendDeviceInfo(bufEvent);
     }
     //写操作发生事件
     if(BEV_EVENT_WRITING & sEvent){
@@ -81,7 +119,7 @@ void Client::eventHandler(struct bufferevent * bufEvent, short sEvent, void * ar
     //结束指示,操作时发生错误
     if (sEvent & (BEV_EVENT_ERROR | BEV_EVENT_EOF)){
         printf("error or end  event !!!\n");
-        event_base_loopexit(client_ptr->baseEvent, NULL);  
+        event_base_loopexit(client->baseEvent, NULL);  
     }
     //读取发生事件或者超时处理
     if(0 != (sEvent & (BEV_EVENT_TIMEOUT|BEV_EVENT_READING)) ){
@@ -100,7 +138,7 @@ void Client::start(const char* ip,unsigned int port){
     this->bufferEvent = bufferevent_socket_new(this->baseEvent, -1, 0);
 
     //设置回调函数, 及回调函数的参数
-    bufferevent_setcb(this->bufferEvent, responseHandler, requestHandler, eventHandler, NULL);
+    bufferevent_setcb(this->bufferEvent, responseHandler, requestHandler, eventHandler, (void*)this);
     //构造服务器地址
     struct sockaddr_in sin;
     memset(&sin, 0, sizeof(sin));
