@@ -11,6 +11,16 @@
         Route.getRedirectUrl = function(url){
             return window.location.protocol+"//"+document.domain+"/"+url+".html";
         }
+        Route.checkRequestCallback = function(response){
+            if(response.status == 502 || response.status == -1){
+                alert("获取服务器数据失败");
+            }else if(response.status == 401){
+                alert("身份认证过期啦");
+                User.logOut();
+            }else{
+            	alert("未知错误");
+            }
+        }
         return Route;
     });
 
@@ -71,24 +81,25 @@
         }
         return Cookie;
     }); 
-    app.factory('Device', function(Cookie,Route) {
+    app.factory('Device', function(Cookie,$http,Route) {
         var Device = {};
         Device.sendKeyboardEvent = function(key){
             switch(key){
-                case 119:
-                    //W
-                break;
-                case 115:
-                    //S
-                break;
-                case 97:
-                    //A
-                break;
-                case 100:
-                    //D
-                break;
+                case 119://W
+                case 115://S
+                case 97://A
+                case 100://D
+                case 105://I
+				case 107://K
+				case 106://J
+				case 108://L
+
+				break;
+				default:
+				break;
             }
         }
+        return Device;
     });
     app.factory('User', function(Cookie,Route) {  
         var User = {};  
@@ -162,7 +173,7 @@
         $scope.setCameraPower = function(){
             $http.get(api_url+"/device/info"+"?token="+User.getToken()+"&sockfd="+Cookie.getCookie("control_sockfd")).then(function successCallback(response) {
                 console.log(response.data.data);
-            });
+            }).catch(Route.checkRequestCallback);
         }
     });
     app.controller('IndexCtl',function($scope,User,Route,Cookie,$http) {
@@ -178,16 +189,7 @@
                 response.data.data[index].status = (status == 1) ? "正常":"异常";
             } 
             $scope.deviceList = response.data.data;
-        }).catch(function(response) {
-            console.log(response);
-            console.log(response.status);
-            if(response.status == 502 || response.status == -1){
-                alert("获取服务器数据失败");
-            }else if(response.status == 401){
-                alert("身份认证过期啦");
-                User.logOut();
-            }
-        });
+        }).catch(Route.checkRequestCallback);
         
         $scope.redirectControl = function(device_id,sockfd){
             Cookie.setCookie("control_device_id",device_id);
@@ -233,7 +235,7 @@
                     $scope.error = false;
                     $scope.message = response.data.message;
                 }
-            });
+            }).catch(Route.checkRequestCallback);
         }
         $document.bind("keypress", function(event) {
             $scope.$apply(function (){
