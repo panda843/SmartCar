@@ -43,7 +43,7 @@ void Client::sendDeviceInfo(struct bufferevent * bufEvent){
 }
 
 void Client::handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value *data){
-    printf("call getDeviceBaseInfo func:%s\n",data.toStyledString().c_str());
+    printf("call getDeviceBaseInfo func:%s\n",data->toStyledString()->c_str());
 }
 
 void Client::call(struct bufferevent * bufEvent,Json::Value &request_data,const string func){
@@ -52,7 +52,7 @@ void Client::call(struct bufferevent * bufEvent,Json::Value &request_data,const 
         Json::Value data;
         root["protocol"] = API_NOT_FIND;
         root["data"] = data;
-        bufferevent_write(bufEvent,root.c_str(),root.length());
+        bufferevent_write(bufEvent,root.toStyledString().c_str(),root.toStyledString().length());
         return;
     }
     if (device_api_list.count(func)) {
@@ -62,8 +62,7 @@ void Client::call(struct bufferevent * bufEvent,Json::Value &request_data,const 
         Json::Value data;
         root["protocol"] = API_NOT_FIND;
         root["data"] = data;
-        string not_str = root.toStyledString();
-        bufferevent_write(conn,not_str.c_str(),not_str.length());
+        bufferevent_write(bufEvent,root.toStyledString().c_str(),root.toStyledString().length());
     }
 }
 
