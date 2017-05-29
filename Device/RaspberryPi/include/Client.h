@@ -24,7 +24,7 @@ class Client;
 
 #ifndef _CLIENT_STRUCT_
 #define _CLIENT_STRUCT_
-typedef void (Client::*cfunc)(Json::Value&);
+typedef void (Client::*cfunc)(struct bufferevent *,Json::Value&);
 #endif
 
 using namespace std;
