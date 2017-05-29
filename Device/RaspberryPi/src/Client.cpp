@@ -85,7 +85,7 @@ void Client::responseHandler(struct bufferevent * bufEvent, void * args){
         root["protocol"] = API_NOT_FIND;
         root["data"] = data;
         string not_str = root.toStyledString();
-        bufferevent_write(not_str.c_str(),not_str.length());
+        bufferevent_write(bufEvent,not_str.c_str(),not_str.length());
     }
     return ;
 }
