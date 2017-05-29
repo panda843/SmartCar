@@ -43,7 +43,7 @@ void Client::sendDeviceInfo(struct bufferevent * bufEvent){
 }
 
 void Client::handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value *data){
-    printf("call getDeviceBaseInfo func:%s\n",data->toStyledString()->c_str());
+    printf("call getDeviceBaseInfo func:%s\n",data->toStyledString().c_str());
 }
 
 void Client::call(struct bufferevent * bufEvent,Json::Value &request_data,const string func){
@@ -55,7 +55,7 @@ void Client::call(struct bufferevent * bufEvent,Json::Value &request_data,const 
         bufferevent_write(bufEvent,root.toStyledString().c_str(),root.toStyledString().length());
         return;
     }
-    if (device_api_list.count(func)) {
+    if (client_api_list.count(func)) {
         (this->*(client_api_list[func]))(bufEvent,request_data);
     } else {
         Json::Value root;
@@ -76,9 +76,9 @@ void Client::responseHandler(struct bufferevent * bufEvent, void * args){
     int nLen = evbuffer_get_length(pInput);
     //获取数据的地址
     const char * pBody = (const char *)evbuffer_pullup(pInput, nLen);
-    if(reader.parse(data, pBody)){
+    if(reader.parse(pBody, data)){
         string func = data["protocol"].asString();
-        client->call(bufEvent,data,func);
+        client->call(bufEvent,&data,func);
     }else{
         Json::Value root;
         Json::Value data;
