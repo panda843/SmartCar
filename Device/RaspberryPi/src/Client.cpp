@@ -43,7 +43,7 @@ void Client::sendDeviceInfo(struct bufferevent * bufEvent){
 }
 
 void Client::handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
-    printf("call getDeviceBaseInfo func:%s\n",data->toStyledString().c_str());
+    printf("call getDeviceBaseInfo func:%s\n",data.toStyledString().c_str());
 }
 
 void Client::call(struct bufferevent * bufEvent,Json::Value &request_data,const string func){
@@ -56,7 +56,7 @@ void Client::call(struct bufferevent * bufEvent,Json::Value &request_data,const 
         return;
     }
     if (client_api_list.count(func)) {
-        (this->*(client_api_list[func]))(bufEvent,&request_data);
+        (this->*(client_api_list[func]))(bufEvent,request_data);
     } else {
         Json::Value root;
         Json::Value data;
@@ -90,7 +90,6 @@ void Client::responseHandler(struct bufferevent * bufEvent, void * args){
     return ;
 }
 void Client::requestHandler(struct bufferevent * bufEvent, void * args){
-    Client* client = (Client*)args;
     struct evbuffer *output = bufferevent_get_output(bufEvent);
     //当输出缓冲区的内容长度为0，即全部输出之后
     if (evbuffer_get_length(output) == 0) {
