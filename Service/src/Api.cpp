@@ -260,14 +260,14 @@ void Api::video_push(struct evhttp_request* request){
 //视频观看权限认证
 void Api::video_play(struct evhttp_request* request){
   if (evhttp_request_get_command(request) == EVHTTP_REQ_POST) {
-    const char* token = evhttp_find_header(this->getRequestHeader(),"token");
+    POST_DATA token = this->getPostData("token");
     //判断token是否为空
-    if(token == NULL){
+    if(token.val.length() == 0){
       evhttp_send_error(request, HTTP_NOTFOUND, 0);
       return;
     }
     //检查token是否合法
-    if(!this->checkToken(string(token,strlen(token)))){
+    if(!this->checkToken(token.val)){
       evhttp_send_error(request, HTTP_NOTFOUND, 0);
       return;
     }
