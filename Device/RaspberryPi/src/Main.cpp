@@ -2,7 +2,8 @@
   
 int main(){  
     Client* client = new Client();
-    client->start("127.0.0.1",5124);
+    client->setConfig(CONFIG_PATH);
+    client->startRun();
     return 0;  
 }  
 

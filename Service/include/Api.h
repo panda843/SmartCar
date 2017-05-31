@@ -47,6 +47,8 @@ class Api: public ApiServer{
         void device_list(struct evhttp_request* request);
         //获取设备基本信息
         void device_info(struct evhttp_request* request);
+        //发送按键信息
+        void device_keypress(struct evhttp_request* request);
         //调用请求对应的方法
         void call(struct evhttp_request* request, const char* str);
     protected:

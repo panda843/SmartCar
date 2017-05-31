@@ -3,6 +3,7 @@
 
 #define API_DEVICE_INFO "handlerDeverInfo"
 #define API_DEVICE_BASE_INFO "handlerGetDeviceBaseInfo"
+#define API_DEVICE_KEY_DOWN "handlerKeyDown"
 #define API_NOT_FIND "notFindFunction"
 #define API_NOT_FIND_DEVICE "notFindDevice"
 

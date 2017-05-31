@@ -1,39 +1,56 @@
 #include "Device.h"
 
-map<string,pfunc> device_api_list;
-
 Device::Device(){
-    this->mysql = new MysqlHelper();
-    this->mysql->init("127.0.0.1", "root", "root", "smart_car");
     this->initApiList();
+    this->mysql = new MysqlHelper();
 }
 
 Device::~Device(){
 
 }
 
+void Device::setConfig(const char* path){
+    this->AddSignalEvent(SIGINT, Device::QuitCb);
+    Config config;
+    //检测配置文件是否存在
+    if(!config.FileExist(path)){
+      printf("not find config file\n");
+      exit(0);
+    }
+    //读取配置
+    config.ReadFile(path);     
+    string api_host = config.Read("SERVER_HOST", api_host);
+    string mysql_host = config.Read("MYSQL_HOST", mysql_host);
+    string mysql_user = config.Read("MYSQL_USER", mysql_user);
+    string mysql_pass = config.Read("MYSQL_PASS", mysql_pass);
+    string mysql_db = config.Read("MYSQL_DB", mysql_db);
+    int mysql_port = config.Read("MYSQL_PORT", mysql_port);
+    int api_port = config.Read("DEVICE_PORT", api_port);
+    //设置监听
+    this->SetAddress(api_host.c_str()); 
+    this->SetPort(api_port);
+    //设置mysql信息
+    this->mysql->init(mysql_host.c_str(), mysql_user.c_str(), mysql_pass.c_str(), mysql_db.c_str(),"",mysql_port);
+    try {
+        this->mysql->connect();
+    } catch (MysqlHelper_Exception& excep) {
+        printf("%s\n",excep.errorInfo.c_str() );
+        exit(0);
+    }  
+}
+
 void Device::initApiList() {
-  device_api_list[API_DEVICE_INFO] = &Device::handlerDeverInfo;
-  device_api_list[API_DEVICE_BASE_INFO] = &Device::handlerGetDeviceBaseInfo;
+  this->device_api_list[API_DEVICE_INFO] = &Device::handlerDeverInfo;
+  this->device_api_list[API_DEVICE_BASE_INFO] = &Device::handlerGetDeviceBaseInfo;
+  this->device_api_list[API_DEVICE_KEY_DOWN] = &Device::handlerKeyDown;
 }
 
 void Device::call(Conn* &conn, Json::Value &request_data,const string func){
   if(func.length() == 0){
-    Json::Value root;
-    Json::Value data;
-    root["protocol"] = API_NOT_FIND;
-    root["data"] = data;
-    this->sendData(conn,root.toStyledString());
     return;
   }
-  if (device_api_list.count(func)) {
-    (this->*(device_api_list[func]))(conn,request_data);
-  } else {
-    Json::Value root;
-    Json::Value data;
-    root["protocol"] = API_NOT_FIND;
-    root["data"] = data;
-    this->sendData(conn,root.toStyledString());
+  if (this->device_api_list.count(func)) {
+    (this->*(this->device_api_list[func]))(conn,request_data);
   }
 }
 
@@ -43,9 +60,12 @@ void Device::sendData(Conn* &conn,const string resp_data){
     conn->AddToWriteBuffer(data, resp_data.length());
     delete[] data;
 }
-
+void Device::handlerKeyDown(Conn* &conn, Json::Value &request_data){
+    this->sendData(conn,request_data.toStyledString().c_str());
+}
 void Device::handlerGetDeviceBaseInfo(Conn* &conn, Json::Value &request_data){
-    if(request_data["data"]["is_api"].asBool()){
+    Json::Value temp = request_data;
+    if(temp["is_api"].asBool()){
         this->sendData(conn,request_data.toStyledString().c_str());
     }else{
         this->sendApiData(request_data.toStyledString().c_str());
@@ -53,18 +73,16 @@ void Device::handlerGetDeviceBaseInfo(Conn* &conn, Json::Value &request_data){
 }
 
 void Device::handlerDeverInfo(Conn* &conn, Json::Value &request_data){
-    Json::Value root;
-    Json::Value data;
     string sql = "select * from device where ";
-    string name = request_data["name"].asString();
-    string mac = request_data["mac"].asString();
+    string name = request_data["data"]["name"].asString();
+    string mac = request_data["data"]["mac"].asString();
     //获取fd并转string
     int fd = conn->GetFd();
     char intToStr[12];
     sprintf(intToStr,"%d",fd);
     string str_fd = string(intToStr);
     //检查设备是否存在
-    sql = sql+"name=\""+name+"\" and mac=\""+mac+"\"";
+    sql = sql+"mac=\""+mac+"\"";
     MysqlHelper::MysqlData dataSet = this->mysql->queryRecord(sql);
     if (dataSet.size() == 0) {
         //不存在,新增
@@ -74,28 +92,17 @@ void Device::handlerDeverInfo(Conn* &conn, Json::Value &request_data){
         record.insert(make_pair("online",make_pair(MysqlHelper::DB_INT,"1")));
         record.insert(make_pair("status",make_pair(MysqlHelper::DB_INT,"1")));
         record.insert(make_pair("sock_fd",make_pair(MysqlHelper::DB_INT,str_fd)));
-        int insert_id = this->mysql->insertRecord("device",record);
-        data["id"] = insert_id;
+        this->mysql->insertRecord("device",record);
     }else{
         //存在,更新状态
-        string up_sql = "where  mac = \""+mac+"\"";
+        string up_sql = "where mac = \""+mac+"\"";
         MysqlHelper::RECORD_DATA recordChange;
+        recordChange.insert(make_pair("name",make_pair(MysqlHelper::DB_STR,name)));
         recordChange.insert(make_pair("online",make_pair(MysqlHelper::DB_INT,"1")));
         recordChange.insert(make_pair("status",make_pair(MysqlHelper::DB_INT,"1")));
         recordChange.insert(make_pair("sock_fd",make_pair(MysqlHelper::DB_INT,str_fd)));
         this->mysql->updateRecord("device",recordChange,up_sql);
-        data["id"] = dataSet[0]["id"];
     }
-    root["protocol"] = API_DEVICE_INFO;
-    root["data"] = data;
-    this->sendData(conn,root.toStyledString());
-}
-
-void Device::start(const char* ip,unsigned int port){
-    this->AddSignalEvent(SIGINT, Device::QuitCb);
-    this->SetPort(port);
-    this->SetAddress(ip);
-    this->StartRun();
 }
 
 void Device::ReadApiEvent(const char *str){
@@ -108,18 +115,27 @@ void Device::ReadApiEvent(const char *str){
         if(conn != NULL){
             this->call(conn,data,func);
         }else{
+            this->SetDeviceOffline(sock_fd);
             Json::Value root;
             Json::Value data;
             root["protocol"] = API_NOT_FIND_DEVICE;
             root["data"] = data;
             this->sendApiData(root.toStyledString().c_str());
         }
-    }else{
-        Json::Value root;
-        Json::Value data;
-        root["protocol"] = API_NOT_FIND;
-        root["data"] = data;
-        this->sendApiData(root.toStyledString().c_str());
+    }
+}
+
+void Device::SetDeviceOffline(int fd){
+    char str_fd[12];
+    sprintf(str_fd,"%d",fd);
+    string sql = "select * from device where sock_fd = "+string(str_fd);
+    MysqlHelper::MysqlData dataSet = this->mysql->queryRecord(sql);
+    if (dataSet.size() != 0) {
+        string up_sql = "where  mac = \""+dataSet[0]["mac"]+"\"";
+        MysqlHelper::RECORD_DATA recordChange;
+        recordChange.insert(make_pair("online",make_pair(MysqlHelper::DB_INT,"2")));
+        recordChange.insert(make_pair("sock_fd",make_pair(MysqlHelper::DB_INT,"0")));
+        this->mysql->updateRecord("device",recordChange,up_sql);
     }
 }
 
@@ -133,13 +149,7 @@ void Device::ReadEvent(Conn *conn){
     //解析数据
     if(reader.parse(str, data)){
         string func = data["protocol"].asString();
-        this->call(conn,data["data"],func);
-    }else{
-        Json::Value root;
-        Json::Value data;
-        root["protocol"] = API_NOT_FIND;
-        root["data"] = data;
-        this->sendData(conn,root.toStyledString());
+        this->call(conn,data,func);
     }
 }
 
@@ -164,19 +174,7 @@ Conn* Device::getConnBaySocketFd(int sock_fd){
 }
 
 void Device::CloseEvent(Conn *conn, short events){
-    char str_fd[12];
-    sprintf(str_fd,"%d",conn->GetFd());
-    string sql = "select * from device where sock_fd = "+string(str_fd);
-    MysqlHelper::MysqlData dataSet = this->mysql->queryRecord(sql);
-    if (dataSet.size() != 0) {
-        string up_sql = "where  mac = \""+dataSet[0]["mac"]+"\"";
-        MysqlHelper::RECORD_DATA recordChange;
-        recordChange.insert(make_pair("online",make_pair(MysqlHelper::DB_INT,"2")));
-        recordChange.insert(make_pair("sock_fd",make_pair(MysqlHelper::DB_INT,"0")));
-        this->mysql->updateRecord("device",recordChange,up_sql);
-    }else{
-        printf("close sock_fd error,not find mysql socke_fd !!\n");
-    }
+    this->SetDeviceOffline(conn->GetFd());
     map<int,Conn*>::iterator iter;
     for(iter=this->sock_list.begin(); iter!=this->sock_list.end(); iter++){
         if (iter->first == conn->GetFd()){  

@@ -97,6 +97,7 @@ TcpEventServer::~TcpEventServer()
 
     delete m_MainBase;
     delete [] m_Threads;
+    delete[] m_Ip;
 }
 
 void* TcpEventServer::createPthreadSendPipeData(void *arg){
@@ -208,7 +209,6 @@ void TcpEventServer::StartRun()
         sin.sin_family = AF_INET;
         sin.sin_addr.s_addr = inet_addr(m_Ip);  
         sin.sin_port = htons(m_Port);
-
         listener = evconnlistener_new_bind(m_MainBase->base, 
             ListenerEventCb, (void*)this,
             LEV_OPT_REUSEABLE|LEV_OPT_CLOSE_ON_FREE, -1,

@@ -60,8 +60,7 @@ CREATE TABLE `user` (
 --
 ALTER TABLE `device`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `name` (`name`),
-  ADD UNIQUE KEY `mac` (`mac`);
+  ADD UNIQUE `device_mac` (`mac`);
 
 --
 -- Indexes for table `user`

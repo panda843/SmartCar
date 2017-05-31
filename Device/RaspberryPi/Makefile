@@ -10,6 +10,8 @@ LN = ln -sf
 TOP_PATH = $(shell pwd)
 SRC_PATH = $(TOP_PATH)/src/
 BIN_PATH = $(TOP_PATH)/bin
+CFG_PATH = $(TOP_PATH)/config
+CFG_NAME = smart_car_device.conf
 LIB_PATH = $(TOP_PATH)/library
 INC_PATH = $(TOP_PATH)/include
   
@@ -32,3 +34,5 @@ $(OBJS):%.o : %.cpp
 .PHONY : clean  
 clean:  
 	$(RM) $(BIN_PATH)/$(TARGET) $(OBJS) $(BIN_PATH)/client
+install:
+	cp $(CFG_PATH)/$(CFG_NAME) /etc/$(CFG_NAME)

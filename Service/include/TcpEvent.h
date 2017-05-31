@@ -173,7 +173,7 @@ public:
     //设置监听的端口号，如果不需要监听，请将其设置为EXIT_CODE
     void SetPort(int port){ m_Port = port;}
     //设置监听的IP
-    void SetAddress(const char* ip){ m_Ip = ip;}
+    void SetAddress(const char* ip){ char* str = new char[sizeof(ip)];strcpy(str,ip);this->m_Ip = str;}
     //开始事件循环
     void StartRun();
     //在tv时间里结束事件循环,tv为空，则立即停止

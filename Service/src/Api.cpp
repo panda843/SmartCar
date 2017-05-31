@@ -65,6 +65,7 @@ void Api::initApiList() {
   this->api_list["user_register"] = &Api::user_register;
   this->api_list["device_list"] = &Api::device_list;
   this->api_list["device_info"] = &Api::device_info;
+  this->api_list["device_keypress"] = &Api::device_keypress;
 }
 
 /**
@@ -206,9 +207,9 @@ void Api::device_info(struct evhttp_request* request){
     //给device发送信息
     Json::Value device_root;
     Json::Value device_data;
-    device_root["protocol"] = API_DEVICE_BASE_INFO;
     device_data["sockfd"] = sockfd;
-    device_data["is_api"] = true;
+    device_root["is_api"] = true;
+    device_root["protocol"] = API_DEVICE_BASE_INFO;
     device_root["data"] = device_data;
     string str = device_root.toStyledString();
     this->writePipe(str.c_str());
@@ -218,14 +219,45 @@ void Api::device_info(struct evhttp_request* request){
     Json::Value re_json;
     if(reader.parse(re_data, re_json)){
       root["status"] = Json::Value(true);
-      root["message"] = Json::Value("ok");
       root["data"] = re_json;
     }else{
-      Json::Value temp;
       root["status"] = Json::Value(false);
-      root["message"] = Json::Value("获取设备数据失败");
-      root["data"] = temp;
     }
+    string json = root.toStyledString();
+    this->sendJson(request,json.c_str()); 
+  }else{
+    evhttp_send_error(request, HTTP_BADREQUEST, 0);
+  }
+}
+//发送键盘按键
+void Api::device_keypress(struct evhttp_request* request){
+  if (evhttp_request_get_command(request) == EVHTTP_REQ_GET) {
+    const char* token = evhttp_find_header(this->getRequestHeader(),"token");
+    const char* sockfd = evhttp_find_header(this->getRequestHeader(),"sockfd");
+    const char* key = evhttp_find_header(this->getRequestHeader(),"key");
+    //判断token是否为空
+    if(token == NULL){
+      evhttp_send_error(request, 401, 0);
+      return;
+    }
+    //检查token是否合法
+    if(!this->checkToken(string(token,strlen(token)))){
+      evhttp_send_error(request, 401, 0);
+      return;
+    }
+    //给device发送信息
+    Json::Value device_root;
+    Json::Value device_data;
+    device_data["sockfd"] = sockfd;
+    device_data["key"] = key;
+    device_root["is_api"] = true;
+    device_root["protocol"] = API_DEVICE_KEY_DOWN;
+    device_root["data"] = device_data;
+    string str = device_root.toStyledString();
+    this->writePipe(str.c_str());
+    //返回数据
+    Json::Value root;
+    root["status"] = Json::Value(true);
     string json = root.toStyledString();
     this->sendJson(request,json.c_str()); 
   }else{

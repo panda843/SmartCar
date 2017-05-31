@@ -71,7 +71,8 @@ int main(){
         // initDaemon();
         Device* device = new Device();
         device->setPipe(fd_writ,fd_read);
-        device->start("127.0.0.1",5124);
+        device->setConfig(CONFIG_PATH);
+        device->StartRun();
         delete device;
         return 0;
     }
