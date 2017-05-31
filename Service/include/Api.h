@@ -49,6 +49,10 @@ class Api: public ApiServer{
         void device_info(struct evhttp_request* request);
         //发送按键信息
         void device_keypress(struct evhttp_request* request);
+        //视频推流权限认证
+        void video_push(struct evhttp_request* request);
+        //视频观看权限认证
+        void video_play(struct evhttp_request* request);
         //调用请求对应的方法
         void call(struct evhttp_request* request, const char* str);
     protected:

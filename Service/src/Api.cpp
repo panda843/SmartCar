@@ -66,6 +66,8 @@ void Api::initApiList() {
   this->api_list["device_list"] = &Api::device_list;
   this->api_list["device_info"] = &Api::device_info;
   this->api_list["device_keypress"] = &Api::device_keypress;
+  this->api_list["video_push"] = &Api::video_push;
+  this->api_list["video_play"] = &Api::video_play;
 }
 
 /**
@@ -229,6 +231,52 @@ void Api::device_info(struct evhttp_request* request){
     evhttp_send_error(request, HTTP_BADREQUEST, 0);
   }
 }
+//视频推流权限认证
+void Api::video_push(struct evhttp_request* request){
+  if (evhttp_request_get_command(request) == EVHTTP_REQ_POST) {
+    string sql = "select * from user where ";
+    //检查参数
+    POST_DATA username = this->getPostData("username");
+    POST_DATA password = this->getPostData("password");
+
+    if(username.val.length() == 0 || password.val.length() == 0){
+      evhttp_send_error(request, HTTP_NOTFOUND, 0);
+      return;
+    }
+    //查询数据
+    sql = sql+"username=\""+username.val+"\" and password=\""+MD5(password.val).toStr()+"\"";
+    //查找用户是否存在
+    MysqlHelper::MysqlData dataSet = this->mysql->queryRecord(sql);
+    if (dataSet.size() != 0) {
+      this->sendJson(request,"{\"status\":true}");
+    }else{
+      evhttp_send_error(request, HTTP_NOTFOUND, 0);
+    }
+  }else{
+    evhttp_send_error(request, HTTP_NOTFOUND, 0);
+  }
+  
+}
+//视频观看权限认证
+void Api::video_play(struct evhttp_request* request){
+  if (evhttp_request_get_command(request) == EVHTTP_REQ_POST) {
+    const char* token = evhttp_find_header(this->getRequestHeader(),"token");
+    //判断token是否为空
+    if(token == NULL){
+      evhttp_send_error(request, HTTP_NOTFOUND, 0);
+      return;
+    }
+    //检查token是否合法
+    if(!this->checkToken(string(token,strlen(token)))){
+      evhttp_send_error(request, HTTP_NOTFOUND, 0);
+      return;
+    }
+    this->sendJson(request,"{\"status\":true}");
+  }else{
+    evhttp_send_error(request, HTTP_NOTFOUND, 0);
+  }
+}
+
 //发送键盘按键
 void Api::device_keypress(struct evhttp_request* request){
   if (evhttp_request_get_command(request) == EVHTTP_REQ_GET) {
