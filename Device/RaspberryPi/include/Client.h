@@ -1,6 +1,10 @@
 #ifndef _CLIENT_H_
 #define _CLIENT_H_
 
+#include <sys/sysinfo.h>
+#include <sys/statfs.h>
+#include <sys/vfs.h>
+
 #include <map>
 #include "Protocol.h"
 #include "json/json.h"

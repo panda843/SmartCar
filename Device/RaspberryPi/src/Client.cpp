@@ -94,6 +94,17 @@ void Client::sendDeviceInfo(struct bufferevent * bufEvent){
 }
 
 void Client::handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
+    //获取内存大小
+    struct sysinfo memInfo;
+    sysinfo(&memInfo);
+    double totalMemSize = (double)memInfo.totalram/(1024.0*1024.0);
+    double usedMemSize = (double)(memInfo.totalram-memInfo.freeram)/(1024.0*1024.0);
+    //获取磁盘大小
+    struct statfs diskInfo;
+    statfs("/", &diskInfo);
+    double totalDiskSize = (double)(diskInfo.f_bsize*diskInfo.f_blocks)/(1024.0*1024.0);
+    double usedDiskSize = (double)(diskInfo.f_bsize*diskInfo.f_blocks-diskInfo.f_bsize*diskInfo.f_bfree)/(1024.0*1024.0);
+    printf("mem total:%.2fMB,mem used:%.2fMB,disk total:%.2fMB,disk used:%.2fMB\n",totalMemSize,usedMemSize,totalDiskSize,usedDiskSize );
     Json::Value root;
     Json::Value re_data;
     root["is_app"] = false;

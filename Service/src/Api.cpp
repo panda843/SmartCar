@@ -2,11 +2,33 @@
 
 Api::Api(){
     this->initApiList();
+    this->message = new map<int,MESSAGE>;
     this->mysql = new MysqlHelper();
 }
 
 Api::~Api(){
+    delete this->message;
     delete this->mysql;
+}
+
+//添加消息
+void Api::addMessage(const char* title,const char* content){
+  map<int,MESSAGE>::iterator iter = this->message->end();
+  iter--;
+  int index = iter->first;
+  MESSAGE msg;
+  msg.title = string(title,strlen(title));
+  msg.content = string(content,strlen(content));
+  this->message->insert(pair<int, MESSAGE>(index+1, msg));
+}
+//删除消息
+void Api::delMessage(int id){
+  map<int,MESSAGE>::iterator iter;
+  for(iter=this->message->begin();iter!=this->message->end();iter++){   
+    if(id == iter->first){
+      this->message->erase(iter);
+    }
+  }
 }
 
 //向device进程写输入
@@ -325,5 +347,12 @@ void Api::device_keypress(struct evhttp_request* request){
     this->sendJson(request,json.c_str()); 
   }else{
     evhttp_send_error(request, HTTP_BADREQUEST, 0);
+  }
+}
+//获取消息列表
+void Api::message_list(struct evhttp_request* request){
+  map<int,MESSAGE>::iterator iter;
+  for(iter=this->message->begin();iter!=this->message->end();iter++){   
+    
   }
 }

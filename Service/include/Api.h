@@ -17,6 +17,10 @@ class Api;
 #ifndef DEFINE_API_STRUCT
 #define DEFINE_API_STRUCT
 typedef void (Api::*pmf)(struct evhttp_request*);
+typedef struct MESSAGE_STRUCT{
+    string title;
+    string content;
+}MESSAGE;
 #endif 
 
 class Api: public ApiServer{
@@ -32,6 +36,8 @@ class Api: public ApiServer{
     private:
         //api列表
         map<string, pmf> api_list;
+        //消息列表
+        map<int,MESSAGE>* message;
         //Mysql
         MysqlHelper* mysql;
         //通信管道
@@ -53,6 +59,8 @@ class Api: public ApiServer{
         void video_push(struct evhttp_request* request);
         //视频观看权限认证
         void video_play(struct evhttp_request* request);
+        //获取消息列表
+        void message_list(struct evhttp_request* request);
         //调用请求对应的方法
         void call(struct evhttp_request* request, const char* str);
     protected:
@@ -64,6 +72,11 @@ class Api: public ApiServer{
         void writePipe(const char *str);
         //读device进程输入
         char* readPipe();
+        //添加消息
+        void addMessage(const char* title,const char* content);
+        //删除消息
+        void delMessage(int id);
+        
 };
 
 #endif
