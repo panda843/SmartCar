@@ -177,7 +177,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                       <td>{{data.online}}</td>
                       <td>{{data.status}}</td>
                       <td>
-                        <a ng-cloak ng-click="redirectControl(data.id,data.sockfd)" href="###">控制</a>
+                        <a ng-cloak ng-if="data.control" ng-click="redirectControl(data.id,data.sockfd)" href="###">控制</a>
                       </td>
                     </tr>
                   </tbody></table>

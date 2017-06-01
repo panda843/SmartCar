@@ -169,15 +169,30 @@ void Api::device_list(struct evhttp_request* request){
     root["status"] = Json::Value(true);
     root["message"] = Json::Value("ok");
     if(dataSet.size() != 0){
+      //给device发送一按键0信息,用以同步设备状态
       for(size_t i=0;i<dataSet.size();++i){
-        Json::Value node;
-        node["id"] = dataSet[i]["id"];
-        node["name"] = dataSet[i]["name"];
-        node["mac"] = dataSet[i]["mac"];
-        node["online"] = dataSet[i]["online"];
-        node["sockfd"] = dataSet[i]["sock_fd"];
-        node["status"] = dataSet[i]["status"];
-        root["data"].append(node);
+        Json::Value device_root;
+        Json::Value device_data;
+        device_data["sockfd"] = dataSet[i]["sock_fd"];
+        device_data["key"] = "0";
+        device_root["is_api"] = true;
+        device_root["protocol"] = API_DEVICE_KEY_DOWN;
+        device_root["data"] = device_data;
+        string str = device_root.toStyledString();
+        this->writePipe(str.c_str());
+      }
+      MysqlHelper::MysqlData re_data = this->mysql->queryRecord("select * from device");
+      if(re_data.size() != 0){
+        for(size_t i=0;i<re_data.size();++i){
+          Json::Value node;
+          node["id"] = re_data[i]["id"];
+          node["name"] = re_data[i]["name"];
+          node["mac"] = re_data[i]["mac"];
+          node["online"] = re_data[i]["online"];
+          node["sockfd"] = re_data[i]["sock_fd"];
+          node["status"] = re_data[i]["status"];
+          root["data"].append(node);
+        }
       }
     }else{
       root["data"] = data;

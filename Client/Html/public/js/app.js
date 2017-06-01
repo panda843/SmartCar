@@ -193,6 +193,7 @@
                 var status = response.data.data[index].status;
                 response.data.data[index].online = (online == 1) ? "在线":"离线";
                 response.data.data[index].status = (status == 1) ? "正常":"异常";
+                response.data.data[index].control = (online == 1) ? (status == 1) ? true:false:false;
             } 
             $scope.deviceList = response.data.data;
         }).catch(User.checkRequestCallback);
