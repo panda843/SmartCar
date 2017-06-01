@@ -61,7 +61,10 @@ void Device::sendData(Conn* &conn,const string resp_data){
     delete[] data;
 }
 void Device::handlerKeyDown(Conn* &conn, Json::Value &request_data){
-    this->sendData(conn,request_data.toStyledString().c_str());
+    string keycode = request_data["data"]["key"].asString();
+    if(keycode.compare("0") !=0 ){
+        this->sendData(conn,request_data.toStyledString().c_str());
+    }
 }
 void Device::handlerGetDeviceBaseInfo(Conn* &conn, Json::Value &request_data){
     Json::Value temp = request_data;
