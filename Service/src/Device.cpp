@@ -6,7 +6,7 @@ Device::Device(){
 }
 
 Device::~Device(){
-
+    delete this->mysql;
 }
 
 void Device::setConfig(const char* path){
@@ -106,25 +106,33 @@ void Device::handlerDeverInfo(Conn* &conn, Json::Value &request_data){
         recordChange.insert(make_pair("sock_fd",make_pair(MysqlHelper::DB_INT,str_fd)));
         this->mysql->updateRecord("device",recordChange,up_sql);
     }
+    Json::Value root;
+    Json::Value data;
+    root["protocol"] = "addMessage";
+    data["level"] = MSG_LEVEL_SYSTEM;
+    data["title"] = "设备("+name+")链接了";
+    data["content"] = "设备("+name+")链接了";
+    root["data"] = data;
+    this->sendApiData(root.toStyledString().c_str());
 }
 
 void Device::ReadApiEvent(const char *str){
     Json::Reader reader;
     Json::Value data;
-    if(reader.parse(str, data)){
-        string func = data["protocol"].asString();
-        int sock_fd = atoi(data["data"]["sockfd"].asString().c_str());
-        Conn* conn = this->getConnBaySocketFd(sock_fd);
-        if(conn != NULL){
-            this->call(conn,data,func);
-        }else{
-            this->SetDeviceOffline(sock_fd);
-            Json::Value root;
-            Json::Value data;
-            root["protocol"] = API_NOT_FIND_DEVICE;
-            root["data"] = data;
-            this->sendApiData(root.toStyledString().c_str());
-        }
+    string msg(str,strlen(str));
+    reader.parse(msg.c_str(), data);
+    string func = data["protocol"].asString();
+    int sock_fd = atoi(data["data"]["sockfd"].asString().c_str());
+    Conn* conn = this->getConnBaySocketFd(sock_fd);
+    if(conn != NULL){
+        this->call(conn,data,func);
+    }else{
+        this->SetDeviceOffline(sock_fd);
+        Json::Value root;
+        Json::Value data;
+        root["protocol"] = API_NOT_FIND_DEVICE;
+        root["data"] = data;
+        this->sendApiData(root.toStyledString().c_str());
     }
 }
 
@@ -148,12 +156,14 @@ void Device::ReadEvent(Conn *conn){
     //读取客户端数据
     int len = conn->GetReadBufferLen();
     char* str = new char[len+1];
+    memset(str,0,len+1);
     conn->GetReadBuffer(str,len);
     //解析数据
     if(reader.parse(str, data)){
         string func = data["protocol"].asString();
         this->call(conn,data,func);
     }
+    delete[] str;
 }
 
 void Device::WriteEvent(Conn *conn){
@@ -179,9 +189,11 @@ Conn* Device::getConnBaySocketFd(int sock_fd){
 void Device::CloseEvent(Conn *conn, short events){
     this->SetDeviceOffline(conn->GetFd());
     map<int,Conn*>::iterator iter;
-    for(iter=this->sock_list.begin(); iter!=this->sock_list.end(); iter++){
-        if (iter->first == conn->GetFd()){  
-            this->sock_list.erase(iter);  
+    for(iter=this->sock_list.begin(); iter!=this->sock_list.end();){
+        int fd = iter->first;
+        ++iter;
+        if (fd == conn->GetFd()){  
+            this->sock_list.erase(fd);  
         }
     }
 }

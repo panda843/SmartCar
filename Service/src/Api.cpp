@@ -13,14 +13,17 @@ Api::~Api(){
 
 //添加消息
 void Api::addMessage(int level,const char* title,const char* content){
-  map<int,MESSAGE>::iterator iter = this->message->end();
-  iter--;
-  int index = iter->first;
+  int index = 1;
+  if(this->message->size() > 1){
+    map<int,MESSAGE>::iterator iter = this->message->end();
+    --iter;
+    index = iter->first+1;
+  }
   MESSAGE msg;
   msg.title = string(title,strlen(title));
   msg.content = string(content,strlen(content));
   msg.level = level;
-  this->message->insert(pair<int, MESSAGE>(index+1, msg));
+  this->message->insert(pair<int, MESSAGE>(index, msg));
 }
 //删除消息
 void Api::delMessage(int id){
@@ -30,23 +33,6 @@ void Api::delMessage(int id){
       this->message->erase(iter);
     }
   }
-}
-
-//向device进程写输入
-void Api::writePipe(const char *str){
-  write(this->sock_write_pipe[1], str, strlen(str));
-}
-//读device进程输入
-char* Api::readPipe(){
-  char* str = new char[SOCK_PIPE_MAXDATA];
-  read(this->sock_read_pipe[0], str, SOCK_PIPE_MAXDATA);
-  return str;
-}
-void Api::setPipe(int* write_fd,int* read_fd){
-  this->sock_write_pipe = write_fd;
-  this->sock_read_pipe = read_fd;
-  close(this->sock_write_pipe[0]);
-  close(this->sock_read_pipe[1]);
 }
 
 void Api::setConfig(const char* path){
@@ -110,6 +96,24 @@ void Api::call(struct evhttp_request* request, const char* str) {
     (this->*(this->api_list[func]))(request);
   } else {
     evhttp_send_error(request, HTTP_BADREQUEST, 0);
+  }
+}
+
+void Api::ReadDeviceEvent(const char* str){
+  Json::Reader reader;
+  Json::Value data;
+  if(reader.parse(str, data)){
+    string func = data["protocol"].asString();
+    //添加消息
+    if(func.compare("addMessage") == 0){
+      printf("read data:%s\n", str);
+      //在ReadDeviceEvent处理时需要清空数据
+      this->resetDeviceData();
+      int level = data["data"]["level"].asInt();
+      string title = data["data"]["title"].asString();
+      string content = data["data"]["content"].asString();
+      this->addMessage(level,title.c_str(),content.c_str());
+    }
   }
 }
 
@@ -203,7 +207,7 @@ void Api::device_list(struct evhttp_request* request){
         device_root["protocol"] = API_DEVICE_KEY_DOWN;
         device_root["data"] = device_data;
         string str = device_root.toStyledString();
-        this->writePipe(str.c_str());
+        this->sendDeviceData(str.c_str());
       }
       MysqlHelper::MysqlData re_data = this->mysql->queryRecord("select * from device");
       if(re_data.size() != 0){
@@ -253,9 +257,10 @@ void Api::device_info(struct evhttp_request* request){
     device_root["protocol"] = API_DEVICE_BASE_INFO;
     device_root["data"] = device_data;
     string str = device_root.toStyledString();
-    this->writePipe(str.c_str());
+    this->sendDeviceData(str.c_str());
     //返回数据
-    char* re_data = this->readPipe();
+    char re_data[SOCK_PIPE_MAXDATA];
+    this->readDeviceData(re_data);
     Json::Reader reader;
     Json::Value re_json;
     if(reader.parse(re_data, re_json)){
@@ -341,7 +346,7 @@ void Api::device_keypress(struct evhttp_request* request){
     device_root["protocol"] = API_DEVICE_KEY_DOWN;
     device_root["data"] = device_data;
     string str = device_root.toStyledString();
-    this->writePipe(str.c_str());
+    this->sendDeviceData(str.c_str());
     //返回数据
     Json::Value root;
     root["status"] = Json::Value(true);
@@ -354,6 +359,18 @@ void Api::device_keypress(struct evhttp_request* request){
 //获取消息列表
 void Api::message_list(struct evhttp_request* request){
   if (evhttp_request_get_command(request) == EVHTTP_REQ_GET) {
+    const char* token = evhttp_find_header(this->getRequestHeader(),"token");
+    //判断token是否为空
+    if(token == NULL){
+      evhttp_send_error(request, 401, 0);
+      return;
+    }
+    //检查token是否合法
+    if(!this->checkToken(string(token,strlen(token)))){
+      evhttp_send_error(request, 401, 0);
+      return;
+    }
+    
     Json::Value root;
     Json::Value data;
     root["status"] = Json::Value(true);

@@ -96,7 +96,7 @@ TcpEventServer::~TcpEventServer()
         event_base_free(m_Threads[i].base);
 
     delete m_MainBase;
-    delete [] m_Threads;
+    delete[] m_Threads;
     delete[] m_Ip;
 }
 
@@ -115,7 +115,8 @@ void* TcpEventServer::createPthreadSendPipeData(void *arg){
 void* TcpEventServer::createPthreadReadPipeData(void *arg){
     TcpEventServer* ser = (TcpEventServer*)arg;
     while(true){
-        char str[SOCK_PIPE_MAXDATA] = {0};
+        char str[SOCK_PIPE_MAXDATA];
+        memset(str,0,SOCK_PIPE_MAXDATA);
         read(ser->sock_read_pipe[0], str, SOCK_PIPE_MAXDATA);
         ser->ReadApiEvent(str);
     }
@@ -128,22 +129,17 @@ void TcpEventServer::setPipe(int *read_fd,int *write_fd){
   this->sock_read_pipe = read_fd;
   close(this->sock_write_pipe[0]);
   close(this->sock_read_pipe[1]);
-  if(pthread_mutex_init(&mutex_write,NULL) != 0){  
-    printf("Init metux error.");  
-    exit(0);  
-  }  
-  if(!pthread_create(&thread_write_pid,NULL,createPthreadSendPipeData,(void*)this)){
-    pthread_detach(thread_write_pid);
-  }else{
-    printf("Device PIPE Pthread create failed\n");
-    exit(0);
-  }
-  if(!pthread_create(&thread_read_pid,NULL,createPthreadReadPipeData,(void*)this)){
-    pthread_detach(thread_read_pid);
-  }else{
-    printf("Device PIPE Pthread create failed\n");
-    exit(0);
-  }
+  pthread_mutex_init(&this->mutex_write,NULL);
+  //创建线程
+  pthread_attr_t attr_write,attr_read;
+  pthread_attr_init(&attr_write);
+  pthread_attr_init(&attr_read);
+  pthread_attr_setdetachstate(&attr_write, PTHREAD_CREATE_DETACHED);
+  pthread_attr_setdetachstate(&attr_read, PTHREAD_CREATE_DETACHED);
+  pthread_create(&thread_write_pid,&attr_write,createPthreadSendPipeData,(void*)this);
+  pthread_create(&thread_read_pid,&attr_read,createPthreadReadPipeData,(void*)this);
+  pthread_attr_destroy(&attr_write);
+  pthread_attr_destroy(&attr_read);
 }
 void TcpEventServer::sendApiData(const char* str){
     pthread_mutex_lock(&this->mutex_write);
@@ -220,8 +216,11 @@ void TcpEventServer::StartRun()
     //开启各个子线程
     for(int i=0; i<m_ThreadCount; i++)
     {
-        pthread_create(&m_Threads[i].tid, NULL,  
-            WorkerLibevent, (void*)&m_Threads[i]);
+        pthread_attr_t attr;
+        pthread_attr_init(&attr);
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+        pthread_create(&m_Threads[i].tid, &attr,WorkerLibevent, (void*)&m_Threads[i]);
+        pthread_attr_destroy(&attr);
     }
 
     //开启主线程的事件循环
@@ -345,7 +344,6 @@ bool TcpEventServer::AddSignalEvent(int sig, void (*ptr)(int, short, void*))
     //删除旧的信号事件（同一个信号只能有一个信号事件）
     DeleteSignalEvent(sig);
     m_SignalEvents[sig] = ev;
-
     return true;
 }
 
@@ -356,6 +354,7 @@ bool TcpEventServer::DeleteSignalEvent(int sig)
         return false;
 
     event_del(iter->second);
+    event_free(iter->second);
     m_SignalEvents.erase(iter);
     return true;
 }
