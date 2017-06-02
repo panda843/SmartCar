@@ -18,6 +18,7 @@ class Api;
 #define DEFINE_API_STRUCT
 typedef void (Api::*pmf)(struct evhttp_request*);
 typedef struct MESSAGE_STRUCT{
+    int level;
     string title;
     string content;
 }MESSAGE;
@@ -73,7 +74,7 @@ class Api: public ApiServer{
         //读device进程输入
         char* readPipe();
         //添加消息
-        void addMessage(const char* title,const char* content);
+        void addMessage(int level,const char* title,const char* content);
         //删除消息
         void delMessage(int id);
         

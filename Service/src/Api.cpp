@@ -12,13 +12,14 @@ Api::~Api(){
 }
 
 //添加消息
-void Api::addMessage(const char* title,const char* content){
+void Api::addMessage(int level,const char* title,const char* content){
   map<int,MESSAGE>::iterator iter = this->message->end();
   iter--;
   int index = iter->first;
   MESSAGE msg;
   msg.title = string(title,strlen(title));
   msg.content = string(content,strlen(content));
+  msg.level = level;
   this->message->insert(pair<int, MESSAGE>(index+1, msg));
 }
 //删除消息
@@ -361,6 +362,7 @@ void Api::message_list(struct evhttp_request* request){
       MESSAGE msg = iter->second;
       Json::Value node;
       node["title"] = msg.title;
+      node["level"] = msg.level;
       node["content"] = msg.content;
       data.append(node);
     }
