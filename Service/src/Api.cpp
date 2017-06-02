@@ -90,6 +90,7 @@ void Api::initApiList() {
   this->api_list["device_keypress"] = &Api::device_keypress;
   this->api_list["video_push"] = &Api::video_push;
   this->api_list["video_play"] = &Api::video_play;
+  this->api_list["message_list"] = &Api::message_list;
 }
 
 /**
@@ -351,8 +352,22 @@ void Api::device_keypress(struct evhttp_request* request){
 }
 //获取消息列表
 void Api::message_list(struct evhttp_request* request){
-  map<int,MESSAGE>::iterator iter;
-  for(iter=this->message->begin();iter!=this->message->end();iter++){   
-    
+  if (evhttp_request_get_command(request) == EVHTTP_REQ_GET) {
+    Json::Value root;
+    Json::Value data;
+    root["status"] = Json::Value(true);
+    map<int,MESSAGE>::iterator iter;
+    for(iter=this->message->begin();iter!=this->message->end();iter++){   
+      MESSAGE msg = iter->second;
+      Json::Value node;
+      node["title"] = msg.title;
+      node["content"] = msg.content;
+      data.append(node);
+    }
+    root["data"] = data;
+    string json = root.toStyledString();
+    this->sendJson(request,json.c_str());  
+  }else{
+    evhttp_send_error(request, HTTP_BADREQUEST, 0);
   }
 }
