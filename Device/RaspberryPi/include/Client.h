@@ -1,15 +1,22 @@
-#ifndef _CLIENT_H_
-#define _CLIENT_H_
+#ifndef _DEVICE_H_
+#define _DEVICE_H_
 
-#include <sys/sysinfo.h>
-#include <sys/statfs.h>
-#include <sys/vfs.h>
-
-#include <map>
-#include "Protocol.h"
-#include "json/json.h"
-#include "Device.h"
+#include <stdio.h>  
+#include <stdlib.h> 
+#include <string.h> 
+#include <string>  
+#include <sys/ioctl.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
+#include <net/if.h>
+#include "event/event.h"  
+#include "event/bufferevent.h" 
+#include "event/buffer.h"
+#include "event/thread.h"
 #include "Config.h"
+#include "json/json.h"
+#include "Protocol.h"
+using namespace std;
 
 class Client;
 
@@ -18,27 +25,35 @@ class Client;
 typedef void (Client::*cfunc)(struct bufferevent *,Json::Value&);
 #endif
 
-using namespace std;
-
-class Client : public Device{
+class Client{
 public:
     Client();
     ~Client();
+    void startRun();
     void setConfig(const char* path);
 protected:
+    struct event_base* baseEvent;
+    struct bufferevent* bufferEvent;
+    void setIpAddress(const char * ip);
+    void setPort(const int port);
     void ReadEvent(struct bufferevent * bufEvent);
     void WriteEvent(struct bufferevent * bufEvent);
     void SignalEvent(struct bufferevent * bufEvent, short sEvent);
 private:
-    map<string,cfunc> client_api_list;
+    const char *ip;
+    int port;
     string network_card_name;
     string device_name;
-    void initApiList();
-    void sendDeviceInfo(struct bufferevent * bufEvent);
+    map<string,cfunc> client_api_list;
     string getMacAddress();
+    void initApiList();
     void call(struct bufferevent * bufEvent,Json::Value &request_data,const string func);
-    void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data);
-    void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data);
+    //读操作
+    static void ReadEventCb(struct bufferevent *bufEvent, void *args);
+    //写操作
+    static void WriteEventCb(struct bufferevent *bufEvent, void *args); 
+    //关闭
+    static void SignalEventCb(struct bufferevent * bufEvent, short sEvent, void * args);
+    void sendDeviceInfo(struct bufferevent * bufEvent);
 };
-
-#endif  
+#endif
