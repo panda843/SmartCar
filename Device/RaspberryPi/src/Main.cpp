@@ -15,6 +15,12 @@
 #include "Protocol.h"
 
 using namespace std;
+#define CONFIG_PATH "/etc/smart_car_device.conf"
+string network_card_name;
+string device_name;
+string api_host;
+int api_port;
+struct event_base* baseEvent;
 
 //读操作
 void ReadEventCb(struct bufferevent *bufEvent, void *args){
@@ -38,10 +44,12 @@ void SignalEventCb(struct bufferevent * bufEvent, short sEvent, void * args){
     //操作时发生错误
     if (sEvent & BEV_EVENT_ERROR){
         perror("event");
+        event_base_loopexit(baseEvent, NULL);
     }
     //结束指示
     if (sEvent & BEV_EVENT_EOF){
         perror("event");
+        event_base_loopexit(baseEvent, NULL);
     }
     //读取发生事件或者超时处理
     if(0 != (sEvent & (BEV_EVENT_TIMEOUT|BEV_EVENT_READING)) ){
@@ -52,27 +60,25 @@ void SignalEventCb(struct bufferevent * bufEvent, short sEvent, void * args){
     }
     return ;
 }
-  
-int main(){  
+
+void setConfig(const char* config_path){
     Config config;
     //检测配置文件是否存在
-    if(!config.FileExist("/etc/smart_car_device.conf")){
+    if(!config.FileExist(config_path)){
       printf("config: not find config file\n");
       exit(0);
     }
     //读取配置
-    string api_host;
-    string network_card_name;
-    string device_name;
-    int api_port;
-    config.ReadFile("/etc/smart_car_device.conf");     
+    config.ReadFile(config_path);     
     api_host = config.Read("SERVER_HOST", api_host);
     api_port = config.Read("API_PORT", api_port);
     network_card_name = config.Read("NETWORK_CARD", network_card_name);
     device_name = config.Read("DEVICE_NAME", device_name);
+}
 
+void startRun(const char* ip,int port){
     //创建事件驱动句柄
-    struct event_base* baseEvent = event_base_new();
+    baseEvent = event_base_new();
     //创建socket类型的bufferevent
     struct bufferevent* bufferEvent = bufferevent_socket_new(baseEvent, -1, 0);
     //构造服务器地址
@@ -84,7 +90,7 @@ int main(){
     //连接服务器
     if( bufferevent_socket_connect(bufferEvent, (struct sockaddr*)&sin, sizeof(sin)) < 0){
         perror("socket");
-        return 0;
+        return;
     }
     //设置回调函数, 及回调函数的参数
     bufferevent_setcb(bufferEvent, ReadEventCb, WriteEventCb, SignalEventCb,NULL);
@@ -93,4 +99,12 @@ int main(){
     //事件循环结束 资源清理
     bufferevent_free(bufferEvent);
     event_base_free(baseEvent);
+}
+  
+int main(){
+    //加载配置文件
+    setConfig(CONFIG_PATH);
+    //启动sockt
+    startRun(api_host.c_str(),api_port);
+    return 0;
 }  
