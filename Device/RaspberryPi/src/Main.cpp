@@ -52,6 +52,21 @@ void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){
 }
 //获取MAC地址
 string getMacAddress(){
+
+    FILE *fp;
+
+    char returnData[64];
+
+    fp = popen("/sbin/ifconfig wanl0", "r");
+
+    while (fgets(returnData, 64, fp) != NULL)
+    {
+        printf("%s", returnData);
+    }
+
+    pclose(fp);
+
+
     string mac;
     struct ifreq        ifr;
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
