@@ -95,7 +95,10 @@ string getMacAddress(){
         exit(0); 
     }    
     pclose(fstream);
-    return string(buff);
+    string mac;
+    mac = string(buff);
+    mac = mac.substr(0, s.length()-1);
+    return mac;
 }
 //调用方法
 void callFunc(struct bufferevent * bufEvent,Json::Value &request_data,const string func){
