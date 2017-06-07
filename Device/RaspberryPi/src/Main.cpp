@@ -55,6 +55,9 @@ string getMacAddress(){
     string mac;
     struct ifreq        ifr;
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0){
+        perror("socket");
+    }
     strncpy(ifr.ifr_name,network_card_name.c_str(), network_card_name.length());
     printf("ifr_name:%s\n", network_card_name.c_str());
     if (ioctl(sockfd, SIOCGIFHWADDR, &ifr) == 0) {
