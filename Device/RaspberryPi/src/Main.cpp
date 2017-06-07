@@ -211,7 +211,7 @@ void startRun(const char* ip,int port){
 void initApiList() {
   client_api_list[API_DEVICE_BASE_INFO] = &handlerGetDeviceBaseInfo;
   client_api_list[API_DEVICE_KEY_DOWN] = &handlerKeyDown;
-  client_api_list[API_SET_CAMERA_POWER] = &setCameraPower
+  client_api_list[API_SET_CAMERA_POWER] = &setCameraPower;
 }
   
 int main(){
