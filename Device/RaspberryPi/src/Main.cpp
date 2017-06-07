@@ -62,6 +62,8 @@ string getMacAddress(){
             char* mac_c = new char[strlen(ifr.ifr_hwaddr.sa_data)+1];
             sprintf(mac_c,"%02x:%02x:%02x:%02x:%02x:%02x", ifr.ifr_hwaddr.sa_data[0]&0xff, ifr.ifr_hwaddr.sa_data[1]&0xff, ifr.ifr_hwaddr.sa_data[2]&0xff, ifr.ifr_hwaddr.sa_data[3]&0xff, ifr.ifr_hwaddr.sa_data[4]&0xff, ifr.ifr_hwaddr.sa_data[5]&0xff);
             mac = string(mac_c);
+            delete[] mac_c;
+            printf("mac:%s\n", mac.c_str());
         }
     }
     return mac;
