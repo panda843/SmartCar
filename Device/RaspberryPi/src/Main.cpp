@@ -57,7 +57,7 @@ string getMacAddress(){
 
     char returnData[64];
 
-    fp = popen("/sbin/ifconfig wanl0", "r");
+    fp = popen("/sbin/ifconfig wlan0", "r");
 
     while (fgets(returnData, 64, fp) != NULL)
     {
