@@ -54,14 +54,14 @@ void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){
 string getMacAddress(){
     char buff[32];
     memset (buff ,'\0', sizeof(buff));
-    string cmd = "ip addr |grep -A 2 "+network_card_name+" | awk 'NR>1'|awk 'NR<2'|awk '{print $2}'"
+    string cmd = "ip addr |grep -A 2 "+network_card_name+" | awk 'NR>1'|awk 'NR<2'|awk '{print $2}'";
     // 通过管道来回去系统命令返回的值
-    FILE *fstream = popen(cmd.c_str (), "r");
-    if(fstream  == NULL) {
+    FILE *fstream = popen(cmd.c_str(), "r");
+    if(fstream == NULL) {
         perror("popen");
         exit(0);
     }
-    if(NULL == fgets (buff, sizeof(buff), fstream)){
+    if(NULL == fgets(buff, sizeof(buff), fstream)){
         printf("not find mac address !!!\n");
         exit(0); 
     }    
