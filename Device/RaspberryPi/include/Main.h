@@ -8,6 +8,7 @@
 #include <stdlib.h> 
 #include <string.h> 
 #include <string>  
+#include <sstream>
 #include <sys/ioctl.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>

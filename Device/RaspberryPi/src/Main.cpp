@@ -42,9 +42,10 @@ void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
 //键盘按下
 void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){
     Json::Value key_map = data["data"];
-    printf("key string:%s\n", key_map.toStyledString().c_str());
-    int key = atoi(key_map["key"].toStyledString().c_str());
-    printf("key int:%d\n", key);
+    int key;
+    stringstream stream;
+    stream << key_map["key"].toStyledString();
+    stream >> key;
     switch(key){
         case 119://W
         case 115://S
