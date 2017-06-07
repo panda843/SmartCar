@@ -18,31 +18,60 @@
 #include "Protocol.h"
 
 using namespace std;
+//配置文件
 #define CONFIG_PATH "/etc/smart_car_device.conf"
+//硬盘大小获取地址
+#define DISK_SIZE_PATH "/dev/root"
+//定义指针方法
 typedef void (*cfunc)(struct bufferevent *,Json::Value&);
+//网卡名称
 string network_card_name;
+//设备名称
 string device_name;
+//API地址
 string api_host;
+//API端口
 int api_port;
+//BaseEvent
 struct event_base* baseEvent;
+//API列表
 map<string,cfunc> client_api_list;
 //获取基本信息
 void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
+    char buffer[100];
     //获取内存大小
     struct sysinfo memInfo;
     sysinfo(&memInfo);
-    double totalMemSize = (double)memInfo.totalram/(1024.0*1024.0);
-    double usedMemSize = (double)(memInfo.totalram-memInfo.freeram)/(1024.0*1024.0);
     //获取磁盘大小
     struct statfs diskInfo;
-    statfs("/", &diskInfo);
+    statfs(DISK_SIZE_PATH, &diskInfo);
+    //格式化数据
+    double totalMemSize = (double)memInfo.totalram/(1024.0*1024.0);
+    double usedMemSize = (double)(memInfo.totalram-memInfo.freeram)/(1024.0*1024.0);
     double totalDiskSize = (double)(diskInfo.f_bsize*diskInfo.f_blocks)/(1024.0*1024.0);
     double usedDiskSize = (double)(diskInfo.f_bsize*diskInfo.f_blocks-diskInfo.f_bsize*diskInfo.f_bfree)/(1024.0*1024.0);
-    printf("mem total:%.2fMB,mem used:%.2fMB,disk total:%.2fMB,disk used:%.2fMB\n",totalMemSize,usedMemSize,totalDiskSize,usedDiskSize );
+    //构造返回JSON
     Json::Value root;
     Json::Value re_data;
     root["is_app"] = false;
     root["protocol"] = API_DEVICE_BASE_INFO;
+    //总内存大小
+    sprintf(buffer,"%.2f",totalMemSize);
+    re_data["mem_total"] = string(buffer);
+    memset(buffer,0,100);
+    //使用内存
+    sprintf(buffer,"%.2f",usedMemSize);
+    re_data["mem_used"] = string(buffer);
+    memset(buffer,0,100);
+    //总硬盘大小
+    sprintf(buffer,"%.2f",totalDiskSize);
+    re_data["disk_total"] = string(buffer);
+    memset(buffer,0,100);
+    //使用硬盘大小
+    sprintf(buffer,"%.2f",usedDiskSize);
+    re_data["disk_used"] = string(buffer);
+    memset(buffer,0,100);
+    //返回数据
     root["data"] = re_data;
     bufferevent_write(bufEvent, root.toStyledString().c_str(), root.toStyledString().length());
 }
