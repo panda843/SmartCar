@@ -6,5 +6,6 @@
 #define API_DEVICE_KEY_DOWN "handlerKeyDown"
 #define API_NOT_FIND "notFindFunction"
 #define API_NOT_FIND_DEVICE "notFindDevice"
+#define API_SET_CAMERA_POWER "setCameraPower"
 
 #endif

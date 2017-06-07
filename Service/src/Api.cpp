@@ -78,6 +78,7 @@ void Api::initApiList() {
   this->api_list["video_push"] = &Api::video_push;
   this->api_list["video_play"] = &Api::video_play;
   this->api_list["message_list"] = &Api::message_list;
+  this->api_list["camera_power"] = &Api::camera_power;
 }
 
 /**
@@ -106,7 +107,6 @@ void Api::ReadDeviceEvent(const char* str){
     string func = data["protocol"].asString();
     //添加消息
     if(func.compare("addMessage") == 0){
-      printf("read data:%s\n", str);
       //在ReadDeviceEvent处理时需要清空数据
       this->resetDeviceData();
       int level = data["data"]["level"].asInt();
@@ -263,12 +263,8 @@ void Api::device_info(struct evhttp_request* request){
     this->readDeviceData(re_data);
     Json::Reader reader;
     Json::Value re_json;
-    if(reader.parse(re_data, re_json)){
-      re_json["status"] = Json::Value(true);
-    }else{
-      root["status"] = Json::Value(false);
-    }
-    string json = root.toStyledString();
+    reader.parse(re_data, re_json);
+    string json = re_json.toStyledString();
     this->sendJson(request,json.c_str()); 
   }else{
     evhttp_send_error(request, HTTP_BADREQUEST, 0);
@@ -319,7 +315,41 @@ void Api::video_play(struct evhttp_request* request){
     evhttp_send_error(request, HTTP_NOTFOUND, 0);
   }
 }
-
+void Api::camera_power(struct evhttp_request* request){
+  if (evhttp_request_get_command(request) == EVHTTP_REQ_GET) {
+    const char* token = evhttp_find_header(this->getRequestHeader(),"token");
+    const char* sockfd = evhttp_find_header(this->getRequestHeader(),"sockfd");
+    //判断token是否为空
+    if(token == NULL){
+      evhttp_send_error(request, 401, 0);
+      return;
+    }
+    //检查token是否合法
+    if(!this->checkToken(string(token,strlen(token)))){
+      evhttp_send_error(request, 401, 0);
+      return;
+    }
+    //给device发送信息
+    Json::Value device_root;
+    Json::Value device_data;
+    device_data["sockfd"] = sockfd;
+    device_root["is_api"] = true;
+    device_root["protocol"] = API_SET_CAMERA_POWER;
+    device_root["data"] = device_data;
+    string str = device_root.toStyledString();
+    this->sendDeviceData(str.c_str());
+    //返回数据
+    char re_data[SOCK_PIPE_MAXDATA];
+    this->readDeviceData(re_data);
+    Json::Reader reader;
+    Json::Value re_json;
+    reader.parse(re_data, re_json);
+    string json = re_json.toStyledString();
+    this->sendJson(request,json.c_str());  
+  }else{
+    evhttp_send_error(request, HTTP_BADREQUEST, 0);
+  }
+}
 //发送键盘按键
 void Api::device_keypress(struct evhttp_request* request){
   if (evhttp_request_get_command(request) == EVHTTP_REQ_GET) {

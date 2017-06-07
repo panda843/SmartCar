@@ -39,6 +39,9 @@ void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
     root["data"] = re_data;
     bufferevent_write(bufEvent, root.toStyledString().c_str(), root.toStyledString().length());
 }
+void setCameraPower(struct bufferevent * bufEvent,Json::Value &data){
+    printf("SetCameraPower:%s\n",data.toStyledString().c_str() );
+}
 //键盘按下
 void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){
     Json::Value key_map = data["data"];
@@ -208,6 +211,7 @@ void startRun(const char* ip,int port){
 void initApiList() {
   client_api_list[API_DEVICE_BASE_INFO] = &handlerGetDeviceBaseInfo;
   client_api_list[API_DEVICE_KEY_DOWN] = &handlerKeyDown;
+  client_api_list[API_SET_CAMERA_POWER] = &setCameraPower
 }
   
 int main(){

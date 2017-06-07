@@ -54,6 +54,8 @@ class Api: public ApiServer{
         void video_play(struct evhttp_request* request);
         //获取消息列表
         void message_list(struct evhttp_request* request);
+        //打开相机
+        void camera_power(struct evhttp_request* request);
         //调用请求对应的方法
         void call(struct evhttp_request* request, const char* str);
     protected:

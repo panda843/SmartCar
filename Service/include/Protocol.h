@@ -10,6 +10,8 @@
 #define API_NOT_FIND "notFindFunction"
 //没有找到设备
 #define API_NOT_FIND_DEVICE "notFindDevice"
+//打开或关闭相机
+#define API_SET_CAMERA_POWER "setCameraPower"
 //消息级别
 enum MESSAGE_LEVEL{
     MSG_LEVEL_SYSTEM,
