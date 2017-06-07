@@ -1,41 +1,5 @@
-#include <stdio.h>
-#include <sys/sysinfo.h>
-#include <sys/statfs.h>
-#include <sys/vfs.h>
-#include <stdlib.h> 
-#include <string.h> 
-#include <string>  
-#include <sys/ioctl.h>
-#include <netinet/tcp.h>
-#include <arpa/inet.h>
-#include <net/if.h>
-#include "event/event.h"  
-#include "event/bufferevent.h" 
-#include "event/buffer.h"
-#include "event/thread.h"
-#include "Config.h"
-#include "json/json.h"
-#include "Protocol.h"
+#include "Main.h"
 
-using namespace std;
-//配置文件
-#define CONFIG_PATH "/etc/smart_car_device.conf"
-//硬盘大小获取地址
-#define DISK_SIZE_PATH "/dev/root"
-//定义指针方法
-typedef void (*cfunc)(struct bufferevent *,Json::Value&);
-//网卡名称
-string network_card_name;
-//设备名称
-string device_name;
-//API地址
-string api_host;
-//API端口
-int api_port;
-//BaseEvent
-struct event_base* baseEvent;
-//API列表
-map<string,cfunc> client_api_list;
 //获取基本信息
 void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
     char buffer[100];
@@ -77,7 +41,23 @@ void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
 }
 //键盘按下
 void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){
-    printf("key down:%s\n", data["data"].toStyledString().c_str());
+    Json::Value key_map = data["data"];
+    int key = atoi(key_map["key"].toStyledString().c_str());
+    switch(key){
+        case 119://W
+        case 115://S
+        case 97://A
+        case 100://D
+        case 105://I
+        case 107://K
+        case 106://J
+        case 108://L
+            printf("key down:%d\n", key);
+        break;
+        default:
+            printf("key not find:%d\n", key);
+        break;
+    }
 }
 //获取MAC地址
 string getMacAddress(){
@@ -184,7 +164,7 @@ void SignalEventCb(struct bufferevent * bufEvent, short sEvent, void * args){
     }
     return ;
 }
-
+//设置配置文件
 void setConfig(const char* config_path){
     Config config;
     //检测配置文件是否存在
@@ -199,7 +179,7 @@ void setConfig(const char* config_path){
     network_card_name = config.Read("NETWORK_CARD", network_card_name);
     device_name = config.Read("DEVICE_NAME", device_name);
 }
-
+//开始
 void startRun(const char* ip,int port){
     //创建事件驱动句柄
     baseEvent = event_base_new();

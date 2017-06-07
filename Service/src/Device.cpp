@@ -89,7 +89,6 @@ void Device::handlerDeverInfo(Conn* &conn, Json::Value &request_data){
     MysqlHelper::MysqlData dataSet = this->mysql->queryRecord(sql);
     if (dataSet.size() == 0) {
         //不存在,新增
-        try {
         MysqlHelper::RECORD_DATA record;
         record.insert(make_pair("name",make_pair(MysqlHelper::DB_STR,name)));
         record.insert(make_pair("mac",make_pair(MysqlHelper::DB_STR,mac)));
@@ -97,12 +96,8 @@ void Device::handlerDeverInfo(Conn* &conn, Json::Value &request_data){
         record.insert(make_pair("status",make_pair(MysqlHelper::DB_INT,"1")));
         record.insert(make_pair("sock_fd",make_pair(MysqlHelper::DB_INT,str_fd)));
         this->mysql->insertRecord("device",record);
-        } catch (MysqlHelper_Exception& excep) {
-            printf("%s\n",excep.errorInfo.c_str() );
-        }  
     }else{
         //存在,更新状态
-        try {
         string up_sql = "where mac = \""+mac+"\"";
         MysqlHelper::RECORD_DATA recordChange;
         recordChange.insert(make_pair("name",make_pair(MysqlHelper::DB_STR,name)));
@@ -110,9 +105,6 @@ void Device::handlerDeverInfo(Conn* &conn, Json::Value &request_data){
         recordChange.insert(make_pair("status",make_pair(MysqlHelper::DB_INT,"1")));
         recordChange.insert(make_pair("sock_fd",make_pair(MysqlHelper::DB_INT,str_fd)));
         this->mysql->updateRecord("device",recordChange,up_sql);
-        } catch (MysqlHelper_Exception& excep) {
-            printf("%s\n",excep.errorInfo.c_str() );
-        } 
     }
     Json::Value root;
     Json::Value data;
