@@ -42,25 +42,21 @@ void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
 //键盘按下
 void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){
     Json::Value key_map = data["data"];
-    string key = key_map["key"].toStyledString();
-    if(strcmp(key.c_str(),"119") == 0){
-        printf("key down:%s\n", key.c_str());
-    }else if(strcmp(key.c_str(),"115")== 0){
-        printf("key down:%s\n", key.c_str());
-    }else if(strcmp(key.c_str(),"97") == 0){
-        printf("key down:%s\n", key.c_str());
-    }else if(strcmp(key.c_str(),"100") == 0){
-        printf("key down:%s\n", key.c_str());
-    }else if(strcmp(key.c_str(),"105") == 0){
-        printf("key down:%s\n", key.c_str());
-    }else if(strcmp(key.c_str(),"107") == 0){
-        printf("key down:%s\n", key.c_str());
-    }else if(strcmp(key.c_str(),"106") == 0){
-        printf("key down:%s\n", key.c_str());
-    }else if(strcmp(key.c_str(),"108") == 0){
-        printf("key down:%s\n", key.c_str());
-    }else{
-        printf("key not find:%s\n", key.c_str());
+    int key = atoi(key_map["key"].asString().c_str());
+    switch(key){
+        case 119://W
+        case 115://S
+        case 97://A
+        case 100://D
+        case 105://I
+        case 107://K
+        case 106://J
+        case 108://L
+            printf("key down:%d\n", key);
+        break;
+        default:
+            printf("key not find:%d\n", key);
+        break;
     }
 }
 //获取MAC地址
