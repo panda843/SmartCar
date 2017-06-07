@@ -43,21 +43,21 @@ void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
 void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){
     Json::Value key_map = data["data"];
     string key = key_map["key"].toStyledString();
-    if(key.compare("119") == 0){
+    if(strcmp(key.c_str(),"119") == 0){
         printf("key down:%s\n", key.c_str());
-    }else if(key.compare("115") == 0){
+    }else if(strcmp(key.c_str(),"115")== 0){
         printf("key down:%s\n", key.c_str());
-    }else if(key.compare("97") == 0){
+    }else if(strcmp(key.c_str(),"97") == 0){
         printf("key down:%s\n", key.c_str());
-    }else if(key.compare("100") == 0){
+    }else if(strcmp(key.c_str(),"100") == 0){
         printf("key down:%s\n", key.c_str());
-    }else if(key.compare("105") == 0){
+    }else if(strcmp(key.c_str(),"105") == 0){
         printf("key down:%s\n", key.c_str());
-    }else if(key.compare("107") == 0){
+    }else if(strcmp(key.c_str(),"107") == 0){
         printf("key down:%s\n", key.c_str());
-    }else if(key.compare("106") == 0){
+    }else if(strcmp(key.c_str(),"106") == 0){
         printf("key down:%s\n", key.c_str());
-    }else if(key.compare("108") == 0){
+    }else if(strcmp(key.c_str(),"108") == 0){
         printf("key down:%s\n", key.c_str());
     }else{
         printf("key not find:%s\n", key.c_str());
