@@ -97,7 +97,7 @@ string getMacAddress(){
     pclose(fstream);
     string mac;
     mac = string(buff);
-    mac = mac.substr(0, s.length()-1);
+    mac = mac.substr(0, mac.length()-1);
     return mac;
 }
 //调用方法
