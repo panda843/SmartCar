@@ -261,11 +261,7 @@ void Api::device_info(struct evhttp_request* request){
     //返回数据
     char re_data[SOCK_PIPE_MAXDATA];
     this->readDeviceData(re_data);
-    Json::Reader reader;
-    Json::Value re_json;
-    reader.parse(re_data, re_json);
-    string json = re_json.toStyledString();
-    this->sendJson(request,json.c_str()); 
+    this->sendJson(request,re_data); 
   }else{
     evhttp_send_error(request, HTTP_BADREQUEST, 0);
   }
@@ -341,11 +337,7 @@ void Api::camera_power(struct evhttp_request* request){
     //返回数据
     char re_data[SOCK_PIPE_MAXDATA];
     this->readDeviceData(re_data);
-    Json::Reader reader;
-    Json::Value re_json;
-    reader.parse(re_data, re_json);
-    string json = re_json.toStyledString();
-    this->sendJson(request,json.c_str());  
+    this->sendJson(request,re_data);  
   }else{
     evhttp_send_error(request, HTTP_BADREQUEST, 0);
   }

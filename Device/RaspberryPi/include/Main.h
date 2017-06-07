@@ -24,7 +24,7 @@ using namespace std;
 //配置文件
 #define CONFIG_PATH "/etc/smart_car_device.conf"
 //硬盘大小获取地址
-#define DISK_SIZE_PATH "/dev/root"
+#define DISK_SIZE_PATH "/"
 //定义指针方法
 typedef void (*cfunc)(struct bufferevent *,Json::Value&);
 //网卡名称

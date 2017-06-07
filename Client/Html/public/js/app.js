@@ -187,7 +187,7 @@
         //相机开关
         $scope.setCameraPower = function(){
             $http.get(api_url+"/camera/power"+"?token="+User.getToken()+"&sockfd="+Cookie.getCookie("control_sockfd")).then(function successCallback(response) {
-                console.log(response.data.data);
+                console.log(response.data);
             }).catch(User.checkRequestCallback);
         }
     });
