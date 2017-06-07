@@ -52,37 +52,21 @@ void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){
 }
 //获取MAC地址
 string getMacAddress(){
-    char returnData[64];
-    FILE *fp = popen("/sbin/ifconfig wlan0", "r");
-    if(fgets(returnData, 64, fp) != NULL){
-        char* mac_addr = strtok(returnData, "HWaddr ");
-        if( mac_addr != NULL){
-            printf("mac:%s\n",mac_addr );
-        }
+    FILE *fstream = NULL;
+    char buff[32];
+    memset (buff ,'\0', sizeof(buff));
+    string cmd = "ip addr |grep -A 2 "+network_card_name+" | awk 'NR>1'|awk 'NR<2'|awk '{print $2}'"
+    // 通过管道来回去系统命令返回的值
+    if(NULL == (fstream = popen (cmd.c_str (), "r"))) {
+        perror("popen");
+        exit(0);
     }
-
-    pclose(fp);
-
-
-    string mac;
-    struct ifreq        ifr;
-    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sockfd < 0){
-        perror("socket");
-    }
-    strncpy(ifr.ifr_name,network_card_name.c_str(), network_card_name.length());
-    printf("ifr_name:%s\n", network_card_name.c_str());
-    if (ioctl(sockfd, SIOCGIFHWADDR, &ifr) == 0) {
-        if(ifr.ifr_hwaddr.sa_data != NULL){
-            char* mac_c = new char[strlen(ifr.ifr_hwaddr.sa_data)+1];
-            sprintf(mac_c,"%02x:%02x:%02x:%02x:%02x:%02x", ifr.ifr_hwaddr.sa_data[0]&0xff, ifr.ifr_hwaddr.sa_data[1]&0xff, ifr.ifr_hwaddr.sa_data[2]&0xff, ifr.ifr_hwaddr.sa_data[3]&0xff, ifr.ifr_hwaddr.sa_data[4]&0xff, ifr.ifr_hwaddr.sa_data[5]&0xff);
-            mac = string(mac_c);
-            delete[] mac_c;
-            printf("mac:%s\n", mac.c_str());
-        }
-    }
-    perror("ioctl");
-    return mac;
+    if(NULL == fgets (buff, sizeof(buff), fstream)){
+        printf("not find mac address !!!\n");
+        exit(0); 
+    }    
+    pclose(fstream);
+    return string(buff);
 }
 //调用方法
 void callFunc(struct bufferevent * bufEvent,Json::Value &request_data,const string func){
