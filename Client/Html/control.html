@@ -163,100 +163,36 @@ scratch. This page gets rid of all links and provides the needed markup only.
                 <h3 class="box-title">基本信息</h3>
               </div>
               <div class="box-body">
-                <div class="col-xs-2">
+                <div class="col-xs-3">
                   <div class="input-group margin">
                     <div class="input-group-btn">
-                      <button type="button" class="btn btn-success">主板:</button>
+                      <button type="button" class="btn btn-success">内存大小:</button>
                     </div>
-                    <input type="text" class="form-control" value="正常" disabled="disabled">
+                    <input type="text" class="form-control" value="{{mem_total}}MB" disabled="disabled">
                   </div>
                 </div>
-                <div class="col-xs-2">
+                <div class="col-xs-3">
                   <div class="input-group margin">
                     <div class="input-group-btn">
-                      <button type="button" class="btn btn-success">马达:</button>
+                      <button type="button" class="btn btn-success">内存使用:</button>
                     </div>
-                    <input type="text" class="form-control" value="正常" disabled="disabled">
+                    <input type="text" class="form-control" value="{{mem_used}}MB" disabled="disabled">
                   </div>
                 </div>
-                <div class="col-xs-2">
+                <div class="col-xs-3">
                   <div class="input-group margin">
                     <div class="input-group-btn">
-                      <button type="button" class="btn btn-success">舵机:</button>
+                      <button type="button" class="btn btn-success">硬盘大小:</button>
                     </div>
-                    <input type="text" class="form-control" value="正常" disabled="disabled">
+                    <input type="text" class="form-control" value="{{disk_total}}MB" disabled="disabled">
                   </div>
                 </div>
-                <div class="col-xs-2">
+                <div class="col-xs-3">
                   <div class="input-group margin">
                     <div class="input-group-btn">
-                      <button type="button" class="btn btn-success">声波避障:</button>
+                      <button type="button" class="btn btn-success">硬盘使用:</button>
                     </div>
-                    <input type="text" class="form-control" value="正常" disabled="disabled">
-                  </div>
-                </div>
-                <div class="col-xs-2">
-                  <div class="input-group margin">
-                    <div class="input-group-btn">
-                      <button type="button" class="btn btn-success">红外避障:</button>
-                    </div>
-                    <input type="text" class="form-control" value="正常" disabled="disabled">
-                  </div>
-                </div>
-                <div class="col-xs-2">
-                  <div class="input-group margin">
-                    <div class="input-group-btn">
-                      <button type="button" class="btn btn-success">红外遥控:</button>
-                    </div>
-                    <input type="text" class="form-control" value="正常" disabled="disabled">
-                  </div>
-                </div>
-                <div class="col-xs-2">
-                  <div class="input-group margin">
-                    <div class="input-group-btn">
-                      <button type="button" class="btn btn-success">相机:</button>
-                    </div>
-                    <input type="text" class="form-control" value="正常" disabled="disabled">
-                  </div>
-                </div>
-                <div class="col-xs-2">
-                  <div class="input-group margin">
-                    <div class="input-group-btn">
-                      <button type="button" class="btn btn-success">蓝牙:</button>
-                    </div>
-                    <input type="text" class="form-control" value="正常" disabled="disabled">
-                  </div>
-                </div>
-                <div class="col-xs-2">
-                  <div class="input-group margin">
-                    <div class="input-group-btn">
-                      <button type="button" class="btn btn-success">内存:</button>
-                    </div>
-                    <input type="text" class="form-control" value="30G" disabled="disabled">
-                  </div>
-                </div>
-                <div class="col-xs-2">
-                  <div class="input-group margin">
-                    <div class="input-group-btn">
-                      <button type="button" class="btn btn-success">运行内存:</button>
-                    </div>
-                    <input type="text" class="form-control" value="512MB" disabled="disabled">
-                  </div>
-                </div>
-                <div class="col-xs-2">
-                  <div class="input-group margin">
-                    <div class="input-group-btn">
-                      <button type="button" class="btn btn-success">CPU使用:</button>
-                    </div>
-                    <input type="text" class="form-control" value="30%" disabled="disabled">
-                  </div>
-                </div>
-                <div class="col-xs-2">
-                  <div class="input-group margin">
-                    <div class="input-group-btn">
-                      <button type="button" class="btn btn-success">IO使用率:</button>
-                    </div>
-                    <input type="text" class="form-control" value="30%" disabled="disabled">
+                    <input type="text" class="form-control" value="{{disk_used}}MB" disabled="disabled">
                   </div>
                 </div>
                 <!-- </div>  -->

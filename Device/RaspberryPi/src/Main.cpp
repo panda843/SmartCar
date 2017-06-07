@@ -41,6 +41,14 @@ void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
 }
 void setCameraPower(struct bufferevent * bufEvent,Json::Value &data){
     printf("SetCameraPower:%s\n",data.toStyledString().c_str() );
+    //构造返回JSON
+    Json::Value root;
+    Json::Value re_data;
+    root["is_app"] = false;
+    root["protocol"] = API_SET_CAMERA_POWER;
+    //返回数据
+    root["data"] = re_data;
+    bufferevent_write(bufEvent, root.toStyledString().c_str(), root.toStyledString().length());
 }
 //键盘按下
 void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){

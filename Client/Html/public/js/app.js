@@ -170,14 +170,23 @@
         $scope.url_console = Route.getRedirectUrl("index");
         $scope.nickname = User.getNickName();
         $scope.logout = User.logOut;
+        //设置基本信息
+        $http.get(api_url+"/device/info"+"?token="+User.getToken()+"&sockfd="+Cookie.getCookie("control_sockfd")).then(function successCallback(response) {
+            $scope.mem_total = response.data.data.mem_total;
+            $scope.mem_used = response.data.data.mem_used;
+            $scope.disk_total = response.data.data.disk_total;
+            $scope.disk_used = response.data.data.disk_used;
+        }).catch(User.checkRequestCallback);
+        //按键绑定
         $document.bind("keypress", function(event) {
             $scope.$apply(function (){
                 var keycode = window.event?event.keyCode:event.which;
                 Device.sendKeyboardEvent(keycode);
             })
         });
+        //相机开关
         $scope.setCameraPower = function(){
-            $http.get(api_url+"/device/info"+"?token="+User.getToken()+"&sockfd="+Cookie.getCookie("control_sockfd")).then(function successCallback(response) {
+            $http.get(api_url+"/camera/power"+"?token="+User.getToken()+"&sockfd="+Cookie.getCookie("control_sockfd")).then(function successCallback(response) {
                 console.log(response.data.data);
             }).catch(User.checkRequestCallback);
         }
