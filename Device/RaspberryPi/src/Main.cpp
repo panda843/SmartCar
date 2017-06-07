@@ -52,16 +52,13 @@ void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){
 }
 //获取MAC地址
 string getMacAddress(){
-
-    FILE *fp;
-
     char returnData[64];
-
-    fp = popen("/sbin/ifconfig wlan0", "r");
-
-    while (fgets(returnData, 64, fp) != NULL)
-    {
-        printf("%s", returnData);
+    FILE *fp = popen("/sbin/ifconfig wlan0", "r");
+    if(fgets(returnData, 64, fp) != NULL){
+        char* mac_addr = strtok(returnData, "HWaddr ");
+        if( mac_addr != NULL){
+            printf("mac:%s\n",mac_addr );
+        }
     }
 
     pclose(fp);
