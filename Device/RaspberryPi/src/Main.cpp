@@ -1,4 +1,7 @@
-#include <stdio.h>  
+#include <stdio.h>
+#include <sys/sysinfo.h>
+#include <sys/statfs.h>
+#include <sys/vfs.h>
 #include <stdlib.h> 
 #include <string.h> 
 #include <string>  
@@ -16,15 +19,93 @@
 
 using namespace std;
 #define CONFIG_PATH "/etc/smart_car_device.conf"
+typedef void (*cfunc)(struct bufferevent *,Json::Value&);
 string network_card_name;
 string device_name;
 string api_host;
 int api_port;
 struct event_base* baseEvent;
+map<string,cfunc> client_api_list;
+//获取基本信息
+void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
+    //获取内存大小
+    struct sysinfo memInfo;
+    sysinfo(&memInfo);
+    double totalMemSize = (double)memInfo.totalram/(1024.0*1024.0);
+    double usedMemSize = (double)(memInfo.totalram-memInfo.freeram)/(1024.0*1024.0);
+    //获取磁盘大小
+    struct statfs diskInfo;
+    statfs("/", &diskInfo);
+    double totalDiskSize = (double)(diskInfo.f_bsize*diskInfo.f_blocks)/(1024.0*1024.0);
+    double usedDiskSize = (double)(diskInfo.f_bsize*diskInfo.f_blocks-diskInfo.f_bsize*diskInfo.f_bfree)/(1024.0*1024.0);
+    printf("mem total:%.2fMB,mem used:%.2fMB,disk total:%.2fMB,disk used:%.2fMB\n",totalMemSize,usedMemSize,totalDiskSize,usedDiskSize );
+    Json::Value root;
+    Json::Value re_data;
+    root["is_app"] = false;
+    root["protocol"] = API_DEVICE_BASE_INFO;
+    root["data"] = re_data;
+    bufferevent_write(bufEvent, root.toStyledString().c_str(), root.toStyledString().length());
+}
+//键盘按下
+void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){
+    printf("key down:%s\n", data["data"].toStyledString().c_str());
+}
+//获取MAC地址
+string getMacAddress(){
+    string mac;
+    struct ifreq        ifr;
+    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    strncpy(ifr.ifr_name,network_card_name.c_str(), network_card_name.length());  
+    if (ioctl(sockfd, SIOCGIFHWADDR, &ifr) == 0) {
+        if(ifr.ifr_hwaddr.sa_data != NULL){
+            char* mac_c = new char[strlen(ifr.ifr_hwaddr.sa_data)+1];
+            sprintf(mac_c,"%02x:%02x:%02x:%02x:%02x:%02x", ifr.ifr_hwaddr.sa_data[0]&0xff, ifr.ifr_hwaddr.sa_data[1]&0xff, ifr.ifr_hwaddr.sa_data[2]&0xff, ifr.ifr_hwaddr.sa_data[3]&0xff, ifr.ifr_hwaddr.sa_data[4]&0xff, ifr.ifr_hwaddr.sa_data[5]&0xff);
+            mac = string(mac_c);
+        }
+    }
+    return mac;
+}
+//调用方法
+void callFunc(struct bufferevent * bufEvent,Json::Value &request_data,const string func){
+    if(func.length() == 0){
+        return;
+    }
+    if (client_api_list.count(func)) {
+        (*(client_api_list[func]))(bufEvent,request_data);
+    }
+}
+
+void sendDeviceInfo(struct bufferevent * bufEvent){
+    Json::Value root;
+    Json::Value data;
+    //获取MAC地址
+    data["mac"] = getMacAddress();
+    data["name"] = device_name;
+    root["protocol"] = API_DEVICE_INFO;
+    root["is_app"] = false;
+    root["data"] = data;
+    string json = root.toStyledString();
+    bufferevent_write(bufEvent, json.c_str(), json.length());
+}
 
 //读操作
 void ReadEventCb(struct bufferevent *bufEvent, void *args){
-   
+   Json::Reader reader;
+    Json::Value data;
+    //获取输入缓存
+    struct evbuffer * pInput = bufferevent_get_input(bufEvent);
+    //获取输入缓存数据的长度
+    int len = evbuffer_get_length(pInput);
+    //获取数据
+    char* body = new char[len+1];
+    memset(body,0,sizeof(char)*(len+1));
+    evbuffer_remove(pInput, body, len);
+    if(reader.parse(body, data)){
+        string func = data["protocol"].asString();
+        callFunc(bufEvent,data,func);
+    }
+    delete[] body;
+    return ;
 }
 //写操作
 void WriteEventCb(struct bufferevent *bufEvent, void *args){
@@ -38,6 +119,14 @@ void SignalEventCb(struct bufferevent * bufEvent, short sEvent, void * args){
         //设置读超时时间 10s
         struct timeval tTimeout = {10, 0};
         bufferevent_set_timeouts( bufEvent, &tTimeout, NULL);
+        string mac = getMacAddress();
+        if(mac.length() == 0){
+            printf("MAC地址获取错误请检查网卡配置\n");
+            event_base_loopexit(baseEvent, NULL);
+            exit(0);
+        }
+        //发送基本信息
+        sendDeviceInfo(bufEvent);
     }
     //写操作发生事件
     if(BEV_EVENT_WRITING & sEvent){}
@@ -100,8 +189,15 @@ void startRun(const char* ip,int port){
     bufferevent_free(bufferEvent);
     event_base_free(baseEvent);
 }
+//初始化API列表
+void initApiList() {
+  client_api_list[API_DEVICE_BASE_INFO] = &handlerGetDeviceBaseInfo;
+  client_api_list[API_DEVICE_KEY_DOWN] = &handlerKeyDown;
+}
   
 int main(){
+    //加载API列表
+    initApiList();
     //加载配置文件
     setConfig(CONFIG_PATH);
     //启动sockt
