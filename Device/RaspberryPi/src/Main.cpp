@@ -66,6 +66,7 @@ string getMacAddress(){
             printf("mac:%s\n", mac.c_str());
         }
     }
+    perror("ioctl");
     return mac;
 }
 //调用方法
