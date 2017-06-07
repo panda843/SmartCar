@@ -264,8 +264,7 @@ void Api::device_info(struct evhttp_request* request){
     Json::Reader reader;
     Json::Value re_json;
     if(reader.parse(re_data, re_json)){
-      root["status"] = Json::Value(true);
-      root["data"] = re_json;
+      re_json["status"] = Json::Value(true);
     }else{
       root["status"] = Json::Value(false);
     }
