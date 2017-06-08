@@ -2,7 +2,7 @@
 //获取摄像头状态
 int checkCameraStatus(){
     //检查进程是否存在
-    string checkCmd = "ps -ef|grep raspivid |awk '{a[NR]=$0}END{for(i=1;i<NR;i++)print a[i]}'|awk 'NR<2{print $2}'";
+    string checkCmd = "ps -ef|grep raspivid | grep -v grep |awk 'NR<2{print $2}'";
     //打开popen并执行检查命令
     char buff[32];
     memset(buff ,'\0', sizeof(buff));
@@ -77,19 +77,33 @@ void setCameraPower(struct bufferevent * bufEvent,Json::Value &data){
     int pid = checkCameraStatus();
     if( pid == 0){
         //开启相机
-        string startCmd = "nohup raspivid -fl -t 0 -w "+string(VIDEO_WIDTH)+" -h "+string(VIDEO_HEIGHT)+" -b 1200000 -fps "+string(VIDEO_FPS)+" -pf baseline -o - | ffmpeg -f h264 -i - -c copy -an -f flv -y "+string(VIDEO_SERVER_PATH)+string(VIDEO_NAME)+" >/dev/null 2>&1 &";
+        string startCmd = "nohup raspivid -fl -t 0 -w "+string(VIDEO_WIDTH)+" -h "+string(VIDEO_HEIGHT)+" -b 1200000 -fps "+string(VIDEO_FPS)+" -pf baseline -o - | ffmpeg -f h264 -i - -c copy -an -f flv -y "+string(VIDEO_SERVER_PATH)+string(VIDEO_NAME)+" > /dev/null 2>&1 &";
         //string startCmd = "nohup raspivid -t 0 -w "+string(VIDEO_WIDTH)+" -h "+string(VIDEO_HEIGHT)+" -fps "+string(VIDEO_FPS)+" -b 1200000 -o - | ffmpeg -i - -vcodec copy -an -r "+string(VIDEO_FPS)+" -f flv -metadata streamName="+string(VIDEO_NAME)+" "+string(VIDEO_SERVER_PATH)+string(VIDEO_NAME)+" >/dev/null 2>&1 &";
-        int is_ok = system(startCmd.c_str());
-        re_data["status"] = (is_ok == 0)?true:false;
+        system(startCmd.c_str());
+        //判断命令是否执行成功
         re_data["enable"] = true;
-        re_data["url"] = "http://car.ganktools.com/live/"+string(VIDEO_NAME)+"/index.m3u8";
+        if(checkCameraStatus() == 0){
+            re_data["status"] = false;
+            re_data["message"] = "开启相机失败";
+        }else{
+            re_data["status"] = true;
+            re_data["message"] = "开启相机成功";
+            re_data["url"] = "http://car.ganktools.com/live/"+string(VIDEO_NAME)+"/index.m3u8";
+        }
     }else{
         //关闭相机
         char stopCmd[100];
         sprintf(stopCmd,"kill -9 %d",pid);
-        int is_ok = system(stopCmd);
-        re_data["status"] = (is_ok == 0)?true:false;
+        system(stopCmd);
+        //判断命令是否执行成功
         re_data["enable"] = false;
+        if(checkCameraStatus() == 0){
+            re_data["status"] = true;
+            re_data["message"] = "关闭相机成功";
+        }else{
+            re_data["status"] = false;
+            re_data["message"] = "关闭相机失败";
+        }
     }
     //构造返回JSON
     root["is_app"] = false;

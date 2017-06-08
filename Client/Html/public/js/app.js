@@ -178,8 +178,19 @@
             $scope.disk_used = response.data.data.disk_used;
             if(response.data.data.video_enable){
                 $scope.video_url = response.data.data.video_url;
+                var player = videojs('smartVideo');
+                player.src({
+                    src: response.data.data.video_url,
+                    type: 'application/x-mpegURL'
+                });
+                player.play();
             }else{
-                $scope.video_url = "";
+                var player = videojs('smartVideo');
+                player.src({
+                    src: 'https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8',
+                    type: 'application/x-mpegURL'
+                });
+                player.pause();
             }
         }).catch(User.checkRequestCallback);
         //按键绑定
@@ -193,9 +204,19 @@
         $scope.setCameraPower = function(){
             $http.get(api_url+"/camera/power"+"?token="+User.getToken()+"&sockfd="+Cookie.getCookie("control_sockfd")).then(function successCallback(response) {
                 if(response.data.data.enable){
-                    $scope.video_url = response.data.data.video_url;
+                    var player = videojs('smartVideo');
+                    player.src({
+                        src: response.data.data.video_url,
+                        type: 'application/x-mpegURL'
+                    });
+                    player.play();
                 }else{
-                    $scope.video_url = "";
+                    var player = videojs('smartVideo');
+                    player.src({
+                        src: 'https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8',
+                        type: 'application/x-mpegURL'
+                    });
+                    player.pause();
                 }
             }).catch(User.checkRequestCallback);
         }
