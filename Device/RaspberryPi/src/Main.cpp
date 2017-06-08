@@ -1,4 +1,26 @@
 #include "Main.h"
+//获取摄像头状态
+int checkCameraStatus(){
+    //检查进程是否存在
+    string checkCmd = "ps -ef|grep raspivid |awk '{a[NR]=$0}END{for(i=1;i<NR;i++)print a[i]}'|awk 'NR<2{print $2}'";
+    //打开popen并执行检查命令
+    char buff[32];
+    memset(buff ,'\0', sizeof(buff));
+    // 通过管道来回去系统命令返回的值
+    FILE *fstream = popen(checkCmd.c_str(), "r");
+    if(fstream != NULL) {
+        if(NULL == fgets(buff, sizeof(buff), fstream)){
+           return 0;
+        }
+        if(0 == strlen(buff)){
+            return 0;
+        }else{
+            return atoi(buff);
+        }
+        pclose(fstream); 
+    }
+    return 0;
+}
 
 //获取基本信息
 void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
@@ -35,19 +57,44 @@ void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
     sprintf(buffer,"%.2f",usedDiskSize);
     re_data["disk_used"] = string(buffer);
     memset(buffer,0,100);
+    //视频状态
+    if(checkCameraStatus() == 0){
+        re_data["video_enable"] = false;
+    }else{
+        re_data["video_enable"] = true;
+        re_data["video_url"] = "http://car.ganktools.com/live/"+string(VIDEO_NAME)+"/index.m3u8";
+    }
     //返回数据
     root["data"] = re_data;
     bufferevent_write(bufEvent, root.toStyledString().c_str(), root.toStyledString().length());
 }
+
 void setCameraPower(struct bufferevent * bufEvent,Json::Value &data){
-    printf("SetCameraPower:%s\n",data.toStyledString().c_str() );
-    //构造返回JSON
+    //构造返回json串
     Json::Value root;
     Json::Value re_data;
+    //判断相机状态
+    int pid = checkCameraStatus();
+    if( pid == 0){
+        //开启相机
+        string startCmd = "nohup raspivid -fl -t 0 -w "+string(VIDEO_WIDTH)+" -h "+string(VIDEO_HEIGHT)+" -b 1200000 -fps "+string(VIDEO_FPS)+" -pf baseline -o - | ffmpeg -f h264 -i - -c copy -an -f flv -y "+string(VIDEO_SERVER_PATH)+string(VIDEO_NAME)+" >/dev/null 2>&1 &";
+        //string startCmd = "nohup raspivid -t 0 -w "+string(VIDEO_WIDTH)+" -h "+string(VIDEO_HEIGHT)+" -fps "+string(VIDEO_FPS)+" -b 1200000 -o - | ffmpeg -i - -vcodec copy -an -r "+string(VIDEO_FPS)+" -f flv -metadata streamName="+string(VIDEO_NAME)+" "+string(VIDEO_SERVER_PATH)+string(VIDEO_NAME)+" >/dev/null 2>&1 &";
+        int is_ok = system(startCmd.c_str());
+        re_data["status"] = (is_ok == 0)?true:false;
+        re_data["enable"] = true;
+        re_data["url"] = "http://car.ganktools.com/live/"+string(VIDEO_NAME)+"/index.m3u8";
+    }else{
+        //关闭相机
+        char stopCmd[100];
+        sprintf(stopCmd,"kill -9 %d",pid);
+        int is_ok = system(stopCmd);
+        re_data["status"] = (is_ok == 0)?true:false;
+        re_data["enable"] = false;
+    }
+    //构造返回JSON
     root["is_app"] = false;
-    root["protocol"] = API_SET_CAMERA_POWER;
-    //返回数据
     root["data"] = re_data;
+    root["protocol"] = API_SET_CAMERA_POWER;
     bufferevent_write(bufEvent, root.toStyledString().c_str(), root.toStyledString().length());
 }
 //键盘按下

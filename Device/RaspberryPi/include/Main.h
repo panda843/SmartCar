@@ -25,6 +25,16 @@ using namespace std;
 #define CONFIG_PATH "/etc/smart_car_device.conf"
 //硬盘大小获取地址
 #define DISK_SIZE_PATH "/"
+//流服务器地址
+#define VIDEO_SERVER_PATH "rtmp://123.207.18.40:1935/live/"
+//视频推流名称
+#define VIDEO_NAME "SmartCar"
+//视频宽度
+#define VIDEO_WIDTH "760"
+//视频高度
+#define VIDEO_HEIGHT "299"
+//视频整数
+#define VIDEO_FPS "15"
 //定义指针方法
 typedef void (*cfunc)(struct bufferevent *,Json::Value&);
 //网卡名称

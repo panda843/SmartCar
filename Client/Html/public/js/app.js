@@ -176,6 +176,11 @@
             $scope.mem_used = response.data.data.mem_used;
             $scope.disk_total = response.data.data.disk_total;
             $scope.disk_used = response.data.data.disk_used;
+            if(response.data.data.video_enable){
+                $scope.video_url = response.data.data.video_url;
+            }else{
+                $scope.video_url = "";
+            }
         }).catch(User.checkRequestCallback);
         //按键绑定
         $document.bind("keypress", function(event) {
@@ -187,7 +192,11 @@
         //相机开关
         $scope.setCameraPower = function(){
             $http.get(api_url+"/camera/power"+"?token="+User.getToken()+"&sockfd="+Cookie.getCookie("control_sockfd")).then(function successCallback(response) {
-                console.log(response.data);
+                if(response.data.data.enable){
+                    $scope.video_url = response.data.data.video_url;
+                }else{
+                    $scope.video_url = "";
+                }
             }).catch(User.checkRequestCallback);
         }
     });
