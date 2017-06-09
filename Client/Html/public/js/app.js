@@ -171,7 +171,6 @@
         $scope.nickname = User.getNickName();
         $scope.logout = User.logOut;
 
-        $(".vjs-control-bar").append('<button class="vjs-control " id="danmu_send_opt"><u>重载</u></button>');
         //设置基本信息
         $http.get(api_url+"/device/info"+"?token="+User.getToken()+"&sockfd="+Cookie.getCookie("control_sockfd")).then(function successCallback(response) {
             $scope.mem_total = response.data.data.mem_total;
