@@ -187,7 +187,7 @@
             }else{
                 var player = videojs('smartVideo');
                 player.src({
-                    src: 'https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8',
+                    src: '',
                     type: 'application/x-mpegURL'
                 });
                 player.pause();
@@ -213,7 +213,7 @@
                 }else{
                     var player = videojs('smartVideo');
                     player.src({
-                        src: 'https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8',
+                        src: '',
                         type: 'application/x-mpegURL'
                     });
                     player.pause();
