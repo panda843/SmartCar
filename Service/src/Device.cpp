@@ -65,6 +65,13 @@ void Device::handlerKeyDown(Conn* &conn, Json::Value &request_data){
     string keycode = request_data["data"]["key"].asString();
     if(keycode.compare("0") !=0 ){
         this->sendData(conn,request_data.toStyledString().c_str());
+    }else{
+        Json::Value root;
+        Json::Value data;
+        root["protocol"] = "find device";
+        root["data"] = data;
+        root["status"] = true;
+        this->sendApiData(root.toStyledString().c_str());
     }
 }
 void Device::handlerGetDeviceBaseInfo(Conn* &conn, Json::Value &request_data){
@@ -132,21 +139,18 @@ void Device::ReadApiEvent(const char *str){
     Json::Value data;
     string msg(str,strlen(str));
     reader.parse(msg.c_str(), data);
-    printf("read api:%s\n",msg.c_str());
     string func = data["protocol"].asString();
     int sock_fd = atoi(data["data"]["sockfd"].asString().c_str());
-    printf("sockfd:%d\n",sock_fd);
     Conn* conn = this->getConnBaySocketFd(sock_fd);
     if(conn != NULL){
-        printf("find conn:%p\n",conn);
         this->call(conn,data,func);
     }else{
-        printf("not find conn:%p\n",conn);
         this->SetDeviceOffline(sock_fd);
         Json::Value root;
         Json::Value data;
         root["protocol"] = API_NOT_FIND_DEVICE;
         root["data"] = data;
+        root["status"] = false;
         this->sendApiData(root.toStyledString().c_str());
     }
 }

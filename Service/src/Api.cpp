@@ -208,6 +208,8 @@ void Api::device_list(struct evhttp_request* request){
         device_root["data"] = device_data;
         string str = device_root.toStyledString();
         this->sendDeviceData(str.c_str());
+        char buff[2048];
+        this->readDeviceData(buff);
       }
       MysqlHelper::MysqlData re_data = this->mysql->queryRecord("select * from device");
       if(re_data.size() != 0){
