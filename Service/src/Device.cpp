@@ -135,13 +135,13 @@ void Device::ReadApiEvent(const char *str){
     printf("read api:%s\n",msg.c_str());
     string func = data["protocol"].asString();
     int sock_fd = atoi(data["data"]["sockfd"].asString().c_str());
-    printf("sockfd:%d\n",sockfd);
+    printf("sockfd:%d\n",sock_fd);
     Conn* conn = this->getConnBaySocketFd(sock_fd);
     if(conn != NULL){
-        printf("find conn:%x\n",conn);
+        printf("find conn:%p\n",conn);
         this->call(conn,data,func);
     }else{
-        printf("not find conn:%x\n",conn);
+        printf("not find conn:%p\n",conn);
         this->SetDeviceOffline(sock_fd);
         Json::Value root;
         Json::Value data;
