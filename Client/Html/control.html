@@ -207,7 +207,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
               <h3 class="box-title">视频控制</h3>
               </div>
               <div class="box-body" style="padding:0px 0px;">
-                <video id="smartVideo" class="col-xs-12 video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" height="299" poster="public/images/video_init.jpg" data-setup="{}"></video>
+                <video id="smartVideo" ng-click="reloadVideo();" class="col-xs-12 video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" height="299" poster="public/images/video_init.jpg" data-setup="{}"></video>
               </div>
               <div class="box-footer text-center">
                 <a ng-click="setCameraPower();" class="btn btn-app"><i class="fa fa-power-off"></i> 电源</a>

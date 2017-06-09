@@ -170,6 +170,8 @@
         $scope.url_console = Route.getRedirectUrl("index");
         $scope.nickname = User.getNickName();
         $scope.logout = User.logOut;
+
+        $(".vjs-control-bar").append('<button class="vjs-control " id="danmu_send_opt"><u>重载</u></button>');
         //设置基本信息
         $http.get(api_url+"/device/info"+"?token="+User.getToken()+"&sockfd="+Cookie.getCookie("control_sockfd")).then(function successCallback(response) {
             $scope.mem_total = response.data.data.mem_total;
@@ -183,7 +185,7 @@
                     src: response.data.data.video_url,
                     type: 'application/x-mpegURL'
                 });
-                player.play();
+                player.pause();
             }else{
                 var player = videojs('smartVideo');
                 player.src({
@@ -200,6 +202,11 @@
                 Device.sendKeyboardEvent(keycode);
             })
         });
+        //重载视频
+        $scope.reloadVideo = function(){
+            var player = videojs('smartVideo');
+            player.load();
+        }
         //相机开关
         $scope.setCameraPower = function(){
             $http.get(api_url+"/camera/power"+"?token="+User.getToken()+"&sockfd="+Cookie.getCookie("control_sockfd")).then(function successCallback(response) {
@@ -209,7 +216,7 @@
                         src: response.data.data.video_url,
                         type: 'application/x-mpegURL'
                     });
-                    player.play();
+                    player.pause();
                 }else{
                     var player = videojs('smartVideo');
                     player.src({
