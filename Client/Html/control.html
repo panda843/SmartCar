@@ -15,6 +15,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <!-- VideoJS -->
   <link rel="stylesheet" href="https://cdn.bootcss.com/video.js/6.1.0/video-js.min.css">
   <script src="https://cdn.bootcss.com/video.js/6.1.0/video.min.js"></script>
+  <script src="https://cdn.bootcss.com/video.js/6.0.1/ie8/videojs-ie8.min.js"></script>
   <script src="https://unpkg.com/videojs-flash/dist/videojs-flash.js"></script>
   <script src="https://unpkg.com/videojs-contrib-hls/dist/videojs-contrib-hls.js"></script>
   <link href="public/css/video.css" rel="stylesheet">
@@ -207,7 +208,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
               <h3 class="box-title">视频控制</h3>
               </div>
               <div class="box-body" style="padding:0px 0px;">
-                <video id="smartVideo" ng-click="reloadVideo();" class="col-xs-12 video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" height="299" poster="public/images/video_init.jpg" data-setup="{}"></video>
+                <video id="smartVideo" class="col-xs-12 video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" height="299" poster="public/images/video_init.jpg" webkit-playsinline data-setup='{"techOrder": ["flash", "html5"]}'></video>
               </div>
               <div class="box-footer text-center">
                 <a ng-click="setCameraPower();" class="btn btn-app"><i class="fa fa-power-off"></i> 电源</a>

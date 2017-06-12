@@ -5,17 +5,89 @@
 
     app.factory('Route', function() {  
         var Route = {};
+        //跳转页面
         Route.Redirect = function (url){
             window.location.href=window.location.protocol+"//"+document.domain+"/"+url+".html";
         }
+        //获取跳转页面URL
         Route.getRedirectUrl = function(url){
             return window.location.protocol+"//"+document.domain+"/"+url+".html";
         }
         return Route;
     });
 
+    app.factory('Video', function() {
+        //video对象  
+        var Video = {};
+        //SWF控件
+        videojs.options.flash.swf = "https://cdn.bootcss.com/video.js/6.0.1/video-js.swf";
+        //video_id
+        var object = videojs('smartVideo');
+        //mime
+        var mime = {'hls':'application/x-mpegURL','rtmp':'rtmp/flv'};
+        //添加菜单
+        Video.initMenu = function(){
+            object.ready(function() {
+                $videoPanelMenu = $(".vjs-fullscreen-control");  
+                $videoPanelMenu.before('<div class="vjs-subtitles-button vjs-menu-button vjs-menu-button-popup vjs-control vjs-button" tabindex="0" role="menuitem" aria-live="polite" aria-expanded="false" aria-haspopup="true">'  
+                    + '<div class="vjs-menu" role="presentation">'  
+                    + '<ul class="vjs-menu-content" role="menu">'  
+                    + '<li class="vjs-menu-item" tabindex="-1" role="menuitemcheckbox"  onclick="changeUrl(this)">高清</li>'  
+                    + '<li class="vjs-menu-item vjs-selected" tabindex="-1" role="menuitemcheckbox"  onclick="changeUrl(this)">标清 </li>'  
+                    + '</ul></div><span class="vjs-control-text">清晰度</span></div>');  
+            });
+        }
+        //检查是否支持flash
+        Video.isFlash = function(){
+            var hasFlash = 0; //是否安装了flash
+            var flashVersion = 0; //flash版本
+            if (document.all) {
+                var swf = new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
+                if (swf) {
+                    hasFlash = 1;
+                    VSwf = swf.GetVariable("$version");
+                    flashVersion = parseInt(VSwf.split(" ")[1].split(",")[0]);
+                }
+            } else {
+                if(navigator.plugins && navigator.plugins.length > 0) {
+                    var swf = navigator.plugins["Shockwave Flash"];
+                    if (swf) {
+                        hasFlash = 1;
+                        var words = swf.description.split(" ");
+                        for (var i = 0; i < words.length; ++i) {
+                            if (isNaN(parseInt(words[i]))) continue;
+                            flashVersion = parseInt(words[i]);
+                        }
+                    }
+                }
+            }
+            return hasFlash;
+        }
+        //设置播放地址
+        Video.setUrl = function(url,type){
+            object.src({
+                src: url,
+                type: mime[type]
+            });
+        }
+        //开始播放
+        Video.start = function(){
+            object.play();
+        }
+        //暂停播放
+        Video.stop = function(){
+            object.pause();
+        }
+        //重载视频
+        Video.reload = function(){
+            object.load();
+        }
+        return Video;
+    });
+
     app.factory('Cookie', function() {  
         var Cookie = {};
+        //设置Cookie
         Cookie.setCookie = function(name,value){
             var exp = new Date();
             exp.setTime(exp.getTime() + 1*60*60*1000);
@@ -29,6 +101,7 @@
                 }
             }
         }
+        //获取Cookie
         Cookie.getCookie = function(name){
             if(name == "token"){
                var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)");
@@ -49,6 +122,7 @@
            }
             
         }
+        //删除Cookie
         Cookie.delCookie = function (name){
             var exp = new Date();
             exp.setTime(exp.getTime() - 1);
@@ -62,6 +136,7 @@
                 if(cval!=null)document.cookie= en.encrypt(name) + "="+cval+";expires="+exp.toGMTString()+ ";path=/";
             }
         }
+        //清空Cookie
         Cookie.clearCookie = function(){
             var keys=document.cookie.match(/[^ =;]+(?=\=)/g); 
             if (keys) { 
@@ -78,54 +153,67 @@
         var head;
         var id;
         var token;
+        //设置用户名称
         User.setUserName = function(name){
             Cookie.setCookie("UserName",name);
             username = name;
         }
+        //设置用户昵称
         User.setNickName = function(nick){
             Cookie.setCookie("UserNickName",nick);
             nickname = nick;
         }
+        //设置用户头像
         User.setHead = function(new_head){
             Cookie.setCookie("UserHead",new_head);
             head = new_head;
         }
+        //设置用户ID
         User.setId = function(new_id){
             Cookie.setCookie("UserID",new_id);
             id = new_id;
         }
+        //获取用户名称
         User.getUserName = function(){
             username = Cookie.getCookie("UserName");
             return username;
         }
+        //获取用户昵称
         User.getNickName = function(){
             nickname = Cookie.getCookie("UserNickName");
             return nickname;
         }
+        //获取用户头像
         User.getHead = function(){
             head = Cookie.getCookie("UserHead");
             return head;
         }
+        //获取用户ID
         User.getId = function(){
             id = Cookie.getCookie("UserID");
             return id;
         }
+        //设置Token
         User.setToken = function(tokens){
             token = tokens;
             Cookie.setCookie("token",tokens);
         }
+        //获取Token
         User.getToken = function(){
             token = Cookie.getCookie("token");
             return token;
         }
+        //检查是否登录
         User.isLogin = function(){
             var token = Cookie.getCookie('token');
             return token;
         }
+        //退出登录
         User.logOut = function(){
             Cookie.clearCookie();
             Route.Redirect("login");
         }
+        //检查请求返回
         User.checkRequestCallback = function(response){
             if(response.status == 502 || response.status == -1){
                 alert("获取服务器数据失败");
@@ -143,34 +231,13 @@
         }
         return User;  
     });
-    app.factory('Device', function(Cookie,User,$http,Route) {
-        var Device = {};
-        Device.sendKeyboardEvent = function(key){
-            switch(key){
-                case 119://W
-                case 115://S
-                case 97://A
-                case 100://D
-                case 105://I
-                case 107://K
-                case 106://J
-                case 108://L
-                    $http.get(api_url+"/device/keypress"+"?token="+User.getToken()+"&sockfd="+Cookie.getCookie("control_sockfd")+"&key="+key).then(function successCallback(response) {
-                        console.log(response.data);
-                    }).catch(User.checkRequestCallback);
-                break;
-                default:
-                break;
-            }
-        }
-        return Device;
-    });
-    app.controller('ControlCtl',function($scope,$document,Device,User,Cookie,Route,$http){
+    app.controller('ControlCtl',function($scope,$document,User,Cookie,Route,Video,$http){
+        //检查是否登录
         if(!User.isLogin()){ Route.Redirect("login"); }
         $scope.url_console = Route.getRedirectUrl("index");
         $scope.nickname = User.getNickName();
         $scope.logout = User.logOut;
-
+        Video.initMenu();
         //设置基本信息
         $http.get(api_url+"/device/info"+"?token="+User.getToken()+"&sockfd="+Cookie.getCookie("control_sockfd")).then(function successCallback(response) {
             $scope.mem_total = response.data.data.mem_total;
@@ -178,51 +245,35 @@
             $scope.disk_total = response.data.data.disk_total;
             $scope.disk_used = response.data.data.disk_used;
             if(response.data.data.video_enable){
-                $scope.video_url = response.data.data.video_url;
-                var player = videojs('smartVideo');
-                player.src({
-                    src: response.data.data.video_url,
-                    type: 'application/x-mpegURL'
-                });
-                player.pause();
-            }else{
-                var player = videojs('smartVideo');
-                player.src({
-                    src: '',
-                    type: 'application/x-mpegURL'
-                });
-                player.pause();
+                if(Video.isFlash()){
+                    Video.setUrl(response.data.data.video_rtmp,'rtmp');
+                }else{
+                    Video.setUrl(response.data.data.video_hls,'hls');
+                }
+                Video.play();
             }
         }).catch(User.checkRequestCallback);
         //按键绑定
         $document.bind("keypress", function(event) {
             $scope.$apply(function (){
-                var keycode = window.event?event.keyCode:event.which;
-                Device.sendKeyboardEvent(keycode);
-            })
+                var key = window.event?event.keyCode:event.which;
+                $http.get(api_url+"/device/keypress"+"?token="+User.getToken()+"&sockfd="+Cookie.getCookie("control_sockfd")+"&key="+key).then(function successCallback(response) {
+                    console.log(response.data);
+                }).catch(User.checkRequestCallback);
+            });
         });
-        //重载视频
-        $scope.reloadVideo = function(){
-            var player = videojs('smartVideo');
-            player.load();
-        }
         //相机开关
         $scope.setCameraPower = function(){
             $http.get(api_url+"/camera/power"+"?token="+User.getToken()+"&sockfd="+Cookie.getCookie("control_sockfd")).then(function successCallback(response) {
-                if(response.data.data.enable){
-                    var player = videojs('smartVideo');
-                    player.src({
-                        src: response.data.data.video_url,
-                        type: 'application/x-mpegURL'
-                    });
-                    player.pause();
+                if(response.data.data.video_enable){
+                    if(Video.isFlash()){
+                        Video.setUrl(response.data.data.video_rtmp,'rtmp');
+                    }else{
+                        Video.setUrl(response.data.data.video_hls,'hls');
+                    }
+                    Video.play();
                 }else{
-                    var player = videojs('smartVideo');
-                    player.src({
-                        src: '',
-                        type: 'application/x-mpegURL'
-                    });
-                    player.pause();
+                    Video.stop();
                 }
             }).catch(User.checkRequestCallback);
         }

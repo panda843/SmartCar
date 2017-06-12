@@ -111,7 +111,8 @@ void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
         re_data["video_enable"] = false;
     }else{
         re_data["video_enable"] = true;
-        re_data["video_url"] = "http://car.ganktools.com/live/"+string(VIDEO_NAME)+"/index.m3u8";
+        re_data["video_hls"] = "http://video.ganktools.com/live/"+string(VIDEO_NAME)+"/index.m3u8";
+        re_data["video_rtmp"] = "rtmp://123.207.18.40:1935/live/"+string(VIDEO_NAME);
     }
     //返回数据
     root["data"] = re_data;
@@ -134,14 +135,15 @@ void setCameraPower(struct bufferevent * bufEvent,Json::Value &data){
             pclose(fstream);
         }
         //判断命令是否执行成功
-        re_data["enable"] = true;
+        re_data["video_enable"] = true;
         if(checkCameraStatus() == 0){
             re_data["status"] = false;
             re_data["message"] = "开启相机失败";
         }else{
             re_data["status"] = true;
             re_data["message"] = "开启相机成功";
-            re_data["url"] = "http://video.ganktools.com/live/"+string(VIDEO_NAME)+"/index.m3u8";
+            re_data["video_hls"] = "http://video.ganktools.com/live/"+string(VIDEO_NAME)+"/index.m3u8";
+            re_data["video_rtmp"] = "rtmp://123.207.18.40:1935/live/"+string(VIDEO_NAME);
         }
         //休眠8秒
         usleep(8*1000000);
@@ -154,7 +156,7 @@ void setCameraPower(struct bufferevent * bufEvent,Json::Value &data){
             pclose(fstream);
         }
         //判断命令是否执行成功
-        re_data["enable"] = false;
+        re_data["video_enable"] = false;
         if(checkCameraStatus() == 0){
             re_data["status"] = true;
             re_data["message"] = "关闭相机成功";
