@@ -9,7 +9,7 @@
 //定义日志输出
 #define IS_DEBUG true
 //定义波特率
-#define BAUD_RATE 9600
+#define BAUD_RATE 19200
 //定义舵机1串口
 #define STEERING_ONE 9
 //定义舵机2串口

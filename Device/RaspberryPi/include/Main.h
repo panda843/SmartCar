@@ -12,6 +12,9 @@
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <net/if.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <termios.h>
 #include "event/event.h"  
 #include "event/bufferevent.h" 
 #include "event/buffer.h"

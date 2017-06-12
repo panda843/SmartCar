@@ -1,4 +1,53 @@
 #include "Main.h"
+//初始化Arduino串口设备
+int initArduino(){
+    //open port
+    int fd = open("/dev/ttyACM0", O_RDWR | O_NOCTTY);
+    //set port
+    struct termios options, optionsOld;
+    tcgetattr(fd, &optionsOld);
+    bzero(&options, sizeof(optionsOld));
+    tcflush(fd, TCIOFLUSH);
+    options.c_cflag |= (CLOCAL | CREAD);
+    //设置数据位
+    options.c_cflag &= ~CSIZE;
+    options.c_cflag |= CS8;
+    //偶校验
+    options.c_iflag |= (INPCK | ISTRIP);
+    options.c_cflag |= PARENB;
+    options.c_cflag &= ~PARODD;
+    //19200波特率
+    cfsetispeed(&options, B38400);
+    cfsetospeed(&options, B38400);
+    //1个停止位
+    options.c_cflag &= ~CSTOPB;
+    //原始数据输出
+    options.c_oflag &= ~OPOST;
+    options.c_cc[VTIME] = 0;
+    options.c_cc[VMIN] = 1;
+    tcflush(fd, TCIOFLUSH);
+    return fd;
+}
+//发送串口数据
+void sendArduinoData(const char* data){
+    int fd = initArduino();
+    if( fd > 0){
+        perror("arduino");
+        return;
+    }
+    write(fd, data, strlen(data));
+    close(fd);
+}
+//读取串口数据
+void readArduinoData(char* data, int len){
+    int fd = initArduino();
+    if(fd > 0){
+        perror("arduino");
+        return;
+    }
+    read(fd,data,len);
+    close(fd);
+}
 //获取摄像头状态
 int checkCameraStatus(){
     //检查进程是否存在
@@ -77,8 +126,8 @@ void setCameraPower(struct bufferevent * bufEvent,Json::Value &data){
     int pid = checkCameraStatus();
     if( pid == 0){
         //开启相机
-        //string startCmd = "nohup raspivid -fl -t 0 -w "+string(VIDEO_WIDTH)+" -h "+string(VIDEO_HEIGHT)+" -b 1200000 -fps "+string(VIDEO_FPS)+" -pf baseline -o - | ffmpeg -f h264 -i - -c copy -an -f flv -y "+string(VIDEO_SERVER_PATH)+string(VIDEO_NAME)+" > /dev/null &";
-        string startCmd = "nohup raspivid -t 99999999 -w "+string(VIDEO_WIDTH)+" -h "+string(VIDEO_HEIGHT)+" -fps "+string(VIDEO_FPS)+" -b 1200000 -o - | ffmpeg -i - -vcodec copy -an -r "+string(VIDEO_FPS)+" -f flv -metadata streamName="+string(VIDEO_NAME)+" "+string(VIDEO_SERVER_PATH)+string(VIDEO_NAME)+" >/dev/null &";
+        string startCmd = "nohup raspivid -fl -t 1000 -w "+string(VIDEO_WIDTH)+" -h "+string(VIDEO_HEIGHT)+" -b 1200000 -fps "+string(VIDEO_FPS)+" -pf baseline -o - | ffmpeg -f h264 -i - -c copy -an -f flv -y "+string(VIDEO_SERVER_PATH)+string(VIDEO_NAME)+" > /dev/null &";
+        //string startCmd = "nohup raspivid -t 99999999 -w "+string(VIDEO_WIDTH)+" -h "+string(VIDEO_HEIGHT)+" -fps "+string(VIDEO_FPS)+" -b 1200000 -o - | ffmpeg -i - -vcodec copy -an -r "+string(VIDEO_FPS)+" -f flv -metadata streamName="+string(VIDEO_NAME)+" "+string(VIDEO_SERVER_PATH)+string(VIDEO_NAME)+" >/dev/null &";
         printf("cmd:%s\n",startCmd.c_str() );
         FILE *fstream = popen(startCmd.c_str(), "r");
         if(fstream != NULL){
@@ -92,8 +141,10 @@ void setCameraPower(struct bufferevent * bufEvent,Json::Value &data){
         }else{
             re_data["status"] = true;
             re_data["message"] = "开启相机成功";
-            re_data["url"] = "http://car.ganktools.com/live/"+string(VIDEO_NAME)+"/index.m3u8";
+            re_data["url"] = "http://video.ganktools.com/live/"+string(VIDEO_NAME)+"/index.m3u8";
         }
+        //休眠8秒
+        usleep(8*1000000);
     }else{
         //关闭相机
         char stopCmd[100];
@@ -121,22 +172,11 @@ void setCameraPower(struct bufferevent * bufEvent,Json::Value &data){
 //键盘按下
 void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){
     Json::Value key_map = data["data"];
-    int key = atoi(key_map["key"].asString().c_str());
-    switch(key){
-        case 119://W
-        case 115://S
-        case 97://A
-        case 100://D
-        case 105://I
-        case 107://K
-        case 106://J
-        case 108://L
-            printf("key down:%d\n", key);
-        break;
-        default:
-            printf("key not find:%d\n", key);
-        break;
-    }
+    sendArduinoData(key_map["key"].asString().c_str());
+    char buff[512];
+    memset(buff,0,sizeof(char)*512);
+    readArduinoData(buff,sizeof(char)*512);
+    printf("read Arduino:%s\n", buff);
 }
 //获取MAC地址
 string getMacAddress(){

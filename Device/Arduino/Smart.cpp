@@ -62,8 +62,8 @@ void SmartCar::logs(const char* log){
  * @DateTime 2017-04-21
  */
 void SmartCar::initSmartCar(void){
-    //设置通信串口
-    Serial.begin(BAUD_RATE);
+    //设置通信串口,SERIAL_8E1 数据位8偶校验1停止位
+    Serial.begin(BAUD_RATE,SERIAL_8E1);
     this->logs("MSG: begin ok");
     //设置舵机串口
     this->servo1.attach(STEERING_ONE);

@@ -8,5 +8,9 @@ void setup(){
     car.initSmartCar();
 }
 void loop(){
-    car.autoRun();
+    while(Serial.available()>0){
+        delay(100);
+        String data = Serial.readString();
+        Serial.println(data, DEC);
+    }
 }
