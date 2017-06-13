@@ -2,7 +2,7 @@
 //初始化Arduino串口设备
 int initArduino(){
     //open port
-    int fd = open("/dev/ttyACM0", O_RDWR|O_NOCTTY|O_NDELAY);
+    int fd = open("/dev/ttyACM0", O_RDWR|O_NOCTTY);
     //set port
     struct termios options, optionsOld;
     //储存目前的序列埠设定
