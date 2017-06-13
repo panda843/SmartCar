@@ -2,30 +2,38 @@
 //初始化Arduino串口设备
 int initArduino(){
     //open port
-    int fd = open("/dev/ttyACM0", O_RDWR | O_NOCTTY);
+    int fd = open("/dev/ttyACM0", O_RDWR|O_NOCTTY|O_NDELAY);
     //set port
     struct termios options, optionsOld;
+    //储存目前的序列埠设定
     tcgetattr(fd, &optionsOld);
-    bzero(&options, sizeof(optionsOld));
+    //清除结构体以放入新的序列埠设定值
+    bzero(&options, sizeof(options));
+    //丢弃要写入引用的对象,同时刷新收到的数据但是不读，并且刷新写入的数据但是不传送
     tcflush(fd, TCIOFLUSH);
+    //忽略 modem 控制线，打开接受者
     options.c_cflag |= (CLOCAL | CREAD);
-    //设置数据位
+    //设置数据位，字符长度掩码,8n1 (8 位元, 不做同位元检查,1 个终止位元)
     options.c_cflag &= ~CSIZE;
     options.c_cflag |= CS8;
-    //偶校验
+    //启用输入奇偶检测,去掉第八位,允许输出产生奇偶信息以及输入的奇偶校验,输入和输出是奇校验。
     options.c_iflag |= (INPCK | ISTRIP);
     options.c_cflag |= PARENB;
     options.c_cflag &= ~PARODD;
-    //19200波特率
-    cfsetispeed(&options, B38400);
-    cfsetospeed(&options, B38400);
+    //9600波特率
+    cfsetispeed(&options, B9600);
+    cfsetospeed(&options, B9600);
     //1个停止位
     options.c_cflag &= ~CSTOPB;
     //原始数据输出
     options.c_oflag &= ~OPOST;
+    //设置等待时间和最小接收字符
     options.c_cc[VTIME] = 0;
-    options.c_cc[VMIN] = 1;
+    options.c_cc[VMIN] = 0;
+    //处理未接收字符
     tcflush(fd, TCIOFLUSH);
+    //激活新配置
+    tcsetattr(fd,TCSANOW,&options);
     return fd;
 }
 //发送串口数据
@@ -127,8 +135,8 @@ void setCameraPower(struct bufferevent * bufEvent,Json::Value &data){
     int pid = checkCameraStatus();
     if( pid == 0){
         //开启相机
-        string startCmd = "nohup raspivid -fl -t 1000 -w "+string(VIDEO_WIDTH)+" -h "+string(VIDEO_HEIGHT)+" -b 1200000 -fps "+string(VIDEO_FPS)+" -pf baseline -o - | ffmpeg -f h264 -i - -c copy -an -f flv -y "+string(VIDEO_SERVER_PATH)+string(VIDEO_NAME)+" > /dev/null &";
-        //string startCmd = "nohup raspivid -t 99999999 -w "+string(VIDEO_WIDTH)+" -h "+string(VIDEO_HEIGHT)+" -fps "+string(VIDEO_FPS)+" -b 1200000 -o - | ffmpeg -i - -vcodec copy -an -r "+string(VIDEO_FPS)+" -f flv -metadata streamName="+string(VIDEO_NAME)+" "+string(VIDEO_SERVER_PATH)+string(VIDEO_NAME)+" >/dev/null &";
+        string startCmd = "nohup raspivid -fl -t 0 -w "+string(VIDEO_WIDTH)+" -h "+string(VIDEO_HEIGHT)+" -b 1200000 -fps "+string(VIDEO_FPS)+" -pf baseline -o - | ffmpeg -f h264 -i - -c copy -an -f flv -y "+string(VIDEO_SERVER_PATH)+string(VIDEO_NAME)+" > /dev/null &";
+        //string startCmd = "nohup raspivid -t 0 -w "+string(VIDEO_WIDTH)+" -h "+string(VIDEO_HEIGHT)+" -fps "+string(VIDEO_FPS)+" -b 1200000 -o - | ffmpeg -i - -vcodec copy -an -r "+string(VIDEO_FPS)+" -f flv -metadata streamName="+string(VIDEO_NAME)+" "+string(VIDEO_SERVER_PATH)+string(VIDEO_NAME)+" >/dev/null &";
         printf("cmd:%s\n",startCmd.c_str() );
         FILE *fstream = popen(startCmd.c_str(), "r");
         if(fstream != NULL){
