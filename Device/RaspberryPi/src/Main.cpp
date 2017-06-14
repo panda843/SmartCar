@@ -2,7 +2,7 @@
 //初始化Arduino串口设备
 int initArduino(){
     //open port
-    int fd = open("/dev/ttyAMA0", O_RDWR|O_NOCTTY);
+    int fd = open("/dev/ttyAMA0", O_RDWR|O_NOCTTY|O_NDELAY);
     //set port
     struct termios options, optionsOld;
     //储存目前的序列埠设定
@@ -120,7 +120,7 @@ void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
     }else{
         re_data["video_enable"] = true;
         re_data["video_hls"] = string(VIDEO_PLAY_HLS)+string(VIDEO_NAME)+"/index.m3u8";
-        re_data["video_rtmp"] = string(VIDEO_PLAY_RTMP)+string(VIDEO_NAME);
+        re_data["video_rtmp"] = string(VIDEO_SERVER_PATH)+string(VIDEO_NAME);
     }
     //返回数据
     root["data"] = re_data;
@@ -149,7 +149,7 @@ void setCameraPower(struct bufferevent * bufEvent,Json::Value &data){
             re_data["status"] = true;
             re_data["message"] = "开启相机成功";
             re_data["video_hls"] = string(VIDEO_PLAY_HLS)+string(VIDEO_NAME)+"/index.m3u8";
-            re_data["video_rtmp"] = string(VIDEO_PLAY_RTMP)+string(VIDEO_NAME);
+            re_data["video_rtmp"] = string(VIDEO_SERVER_PATH)+string(VIDEO_NAME);
         }
     }else{
         //关闭相机

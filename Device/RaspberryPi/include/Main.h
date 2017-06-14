@@ -30,8 +30,6 @@ using namespace std;
 #define DISK_SIZE_PATH "/"
 //流服务器地址
 #define VIDEO_SERVER_PATH "rtmp://123.207.18.40:1935/live/"
-//RTMP播放地址
-#define VIDEO_PLAY_RTMP "rtmp://video.ganktools.com:1935/live/"
 //HLS播放地址
 #define VIDEO_PLAY_HLS "http://video.ganktools.com/live/"
 //视频推流名称

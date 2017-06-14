@@ -12,9 +12,9 @@ Video.Construct = function(app){
         var mime = {'hls':'application/x-mpegURL','rtmp':'rtmp/flv'};
         //添加菜单
         Video.initMenu = function(){
-            object.size(760,299);
             object.ready(function() {
-                $videoPanelMenu = $(".vjs-fullscreen-control");  
+                $videoPanelMenu = $(".vjs-fullscreen-control");
+                //<div class="vjs-subs-caps-button vjs-menu-button vjs-menu-button-popup vjs-control vjs-button  vjs-hidden"><button class="vjs-subs-caps-button vjs-menu-button vjs-menu-button-popup vjs-button" type="button" aria-live="polite" aria-disabled="false" title="Subtitles" aria-haspopup="true" aria-expanded="false"><span aria-hidden="true" class="vjs-icon-placeholder"></span><span class="vjs-control-text">Subtitles</span></button><div class="vjs-menu"><ul class="vjs-menu-content" role="menu"><li class="vjs-menu-item vjs-texttrack-settings" tabindex="-1" role="menuitem" aria-live="polite" aria-disabled="false"><span class="vjs-menu-item-text">subtitles settings</span><span class="vjs-control-text">, opens subtitles settings dialog</span></li><li class="vjs-menu-item vjs-selected" tabindex="-1" role="menuitemcheckbox" aria-live="polite" aria-disabled="false" aria-checked="true"><span class="vjs-menu-item-text">subtitles off</span><span class="vjs-control-text">, selected</span></li></ul></div></div>  
                 $videoPanelMenu.before('<div class="vjs-subtitles-button vjs-menu-button vjs-menu-button-popup vjs-control vjs-button" tabindex="0" role="menuitem" aria-live="polite" aria-expanded="false" aria-haspopup="true">'  
                     + '<div class="vjs-menu" role="presentation">'  
                     + '<ul class="vjs-menu-content" role="menu">'  
