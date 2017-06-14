@@ -2,7 +2,7 @@
 //初始化Arduino串口设备
 int initArduino(){
     //open port
-    int fd = open("/dev/ttyACM0", O_RDWR|O_NOCTTY);
+    int fd = open("/dev/ttyAMA0", O_RDWR|O_NOCTTY);
     //set port
     struct termios options, optionsOld;
     //储存目前的序列埠设定
@@ -119,8 +119,8 @@ void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
         re_data["video_enable"] = false;
     }else{
         re_data["video_enable"] = true;
-        re_data["video_hls"] = "http://video.ganktools.com/live/"+string(VIDEO_NAME)+"/index.m3u8";
-        re_data["video_rtmp"] = "rtmp://123.207.18.40:1935/live/"+string(VIDEO_NAME);
+        re_data["video_hls"] = string(VIDEO_PLAY_HLS)+string(VIDEO_NAME)+"/index.m3u8";
+        re_data["video_rtmp"] = string(VIDEO_PLAY_RTMP)+string(VIDEO_NAME);
     }
     //返回数据
     root["data"] = re_data;
@@ -135,8 +135,7 @@ void setCameraPower(struct bufferevent * bufEvent,Json::Value &data){
     int pid = checkCameraStatus();
     if( pid == 0){
         //开启相机
-        string startCmd = "nohup raspivid -fl -t 0 -w "+string(VIDEO_WIDTH)+" -h "+string(VIDEO_HEIGHT)+" -b 1200000 -fps "+string(VIDEO_FPS)+" -pf baseline -o - | ffmpeg -s "+string(VIDEO_WIDTH)+"*"+string(VIDEO_HEIGHT)+" -f h264 -i - -c copy -an -f flv -y "+string(VIDEO_SERVER_PATH)+string(VIDEO_NAME)+" > /dev/null &";
-        //string startCmd = "nohup raspivid -t 0 -w "+string(VIDEO_WIDTH)+" -h "+string(VIDEO_HEIGHT)+" -fps "+string(VIDEO_FPS)+" -b 1200000 -o - | ffmpeg -i - -vcodec copy -an -r "+string(VIDEO_FPS)+" -f flv -metadata streamName="+string(VIDEO_NAME)+" "+string(VIDEO_SERVER_PATH)+string(VIDEO_NAME)+" >/dev/null &";
+        string startCmd = "nohup raspivid -fl -t 0 -w "+string(VIDEO_WIDTH)+" -h "+string(VIDEO_HEIGHT)+" -b 1200000 -fps "+string(VIDEO_FPS)+" -pf baseline -o - | ffmpeg -f h264 -i - -c copy -an -f flv -y "+string(VIDEO_SERVER_PATH)+string(VIDEO_NAME)+" > /dev/null &";
         FILE *fstream = popen(startCmd.c_str(), "r");
         if(fstream != NULL){
             pclose(fstream);
@@ -149,11 +148,9 @@ void setCameraPower(struct bufferevent * bufEvent,Json::Value &data){
         }else{
             re_data["status"] = true;
             re_data["message"] = "开启相机成功";
-            re_data["video_hls"] = "http://video.ganktools.com/live/"+string(VIDEO_NAME)+"/index.m3u8";
-            re_data["video_rtmp"] = "rtmp://123.207.18.40:1935/live/"+string(VIDEO_NAME);
+            re_data["video_hls"] = string(VIDEO_PLAY_HLS)+string(VIDEO_NAME)+"/index.m3u8";
+            re_data["video_rtmp"] = string(VIDEO_PLAY_RTMP)+string(VIDEO_NAME);
         }
-        //休眠8秒
-        usleep(8*1000000);
     }else{
         //关闭相机
         char stopCmd[100];
