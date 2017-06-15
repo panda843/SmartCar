@@ -2,7 +2,11 @@
 //初始化Arduino串口设备
 int initArduino(){
     //open port
-    int fd = open("/dev/ttyAMA0", O_RDWR|O_NOCTTY|O_NDELAY);
+    int fd = open("/dev/ttyS0", O_RDWR|O_NOCTTY|O_NDELAY);
+    if(fd > 0){
+        perror("Arduino");
+        return fd;
+    }
     //set port
     struct termios options, optionsOld;
     //储存目前的序列埠设定
@@ -11,50 +15,45 @@ int initArduino(){
     bzero(&options, sizeof(options));
     //丢弃要写入引用的对象,同时刷新收到的数据但是不读，并且刷新写入的数据但是不传送
     tcflush(fd, TCIOFLUSH);
-    //忽略 modem 控制线，打开接受者
-    options.c_cflag |= (CLOCAL | CREAD);
-    //设置数据位，字符长度掩码,8n1 (8 位元, 不做同位元检查,1 个终止位元)
-    options.c_cflag &= ~CSIZE;
-    options.c_cflag |= CS8;
-    //启用输入奇偶检测,去掉第八位,允许输出产生奇偶信息以及输入的奇偶校验,输入和输出是奇校验。
-    options.c_iflag |= (INPCK | ISTRIP);
-    options.c_cflag |= PARENB;
-    options.c_cflag &= ~PARODD;
     //9600波特率
     cfsetispeed(&options, B9600);
     cfsetospeed(&options, B9600);
-    //1个停止位
-    options.c_cflag &= ~CSTOPB;
+    //忽略 modem 控制线，打开接受者
+    options.c_lflag  &= ~(ICANON | ECHO | ECHOE | ISIG);
     //原始数据输出
-    options.c_oflag &= ~OPOST;
+    options.c_oflag  &= ~OPOST;
+    //不使用流控制,CTS(Clear To Send)和RTS(Request To Send)
+    options.c_cflag &= ~CRTSCTS;
+    options.c_cflag &= ~CNEW_RTSCTS;
+    //无奇偶校验位
+    options.c_cflag &= ~PARENB;
     //设置等待时间和最小接收字符
-    options.c_cc[VTIME] = 0;
+    options.c_cc[VTIME] = 150;
     options.c_cc[VMIN] = 0;
     //处理未接收字符
     tcflush(fd, TCIOFLUSH);
     //激活新配置
-    tcsetattr(fd,TCSANOW,&options);
+    if(tcsetattr(fd,TCSANOW,&options) != 0){
+        perror("Arduino");
+        return -1;
+    }
     return fd;
 }
 //发送串口数据
 void sendArduinoData(const char* data){
     int fd = initArduino();
-    if( fd > 0){
-        perror("arduino");
-        return;
+    if( fd < 0){
+        write(fd, data, strlen(data));
+        close(fd);
     }
-    write(fd, data, strlen(data));
-    close(fd);
 }
 //读取串口数据
 void readArduinoData(char* data, int len){
     int fd = initArduino();
-    if(fd > 0){
-        perror("arduino");
-        return;
+    if(fd < 0){
+        read(fd,data,len);
+        close(fd);
     }
-    read(fd,data,len);
-    close(fd);
 }
 //获取摄像头状态
 int checkCameraStatus(){
@@ -99,21 +98,21 @@ void handlerGetDeviceBaseInfo(struct bufferevent * bufEvent,Json::Value &data){
     root["is_app"] = false;
     root["protocol"] = API_DEVICE_BASE_INFO;
     //总内存大小
+    memset(buffer,0,100);
     sprintf(buffer,"%.2f",totalMemSize);
     re_data["mem_total"] = string(buffer);
-    memset(buffer,0,100);
     //使用内存
+    memset(buffer,0,100);
     sprintf(buffer,"%.2f",usedMemSize);
     re_data["mem_used"] = string(buffer);
-    memset(buffer,0,100);
     //总硬盘大小
+    memset(buffer,0,100);
     sprintf(buffer,"%.2f",totalDiskSize);
     re_data["disk_total"] = string(buffer);
-    memset(buffer,0,100);
     //使用硬盘大小
+    memset(buffer,0,100);
     sprintf(buffer,"%.2f",usedDiskSize);
     re_data["disk_used"] = string(buffer);
-    memset(buffer,0,100);
     //视频状态
     if(checkCameraStatus() == 0){
         re_data["video_enable"] = false;
@@ -283,9 +282,18 @@ void SignalEventCb(struct bufferevent * bufEvent, short sEvent, void * args){
     //读取发生事件或者超时处理
     if(0 != (sEvent & (BEV_EVENT_TIMEOUT|BEV_EVENT_READING)) ){
         //发送心跳包
-        //
+        string mac = getMacAddress();
+        if(mac.length() == 0){
+            printf("MAC地址获取错误请检查网卡配置\n");
+            event_base_loopexit(baseEvent, NULL);
+            exit(0);
+        }
+        sendDeviceInfo(bufEvent);
         //重新注册可读事件
         bufferevent_enable(bufEvent, EV_READ);
+        //设置读超时时间 10s
+        struct timeval tTimeout = {10, 0};
+        bufferevent_set_timeouts( bufEvent, &tTimeout, NULL);
     }
     return ;
 }
