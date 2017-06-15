@@ -20,23 +20,18 @@ void ApiServer::setPort(const int port){
 }
 
 void ApiServer::setPipe(int* write_fd,int* read_fd){
-  pthread_t thread_write_pid,thread_read_pid;
-  pthread_attr_t attr_write,attr_read;
+  pthread_t thread_write_pid;
+  pthread_attr_t attr_write;
   this->sock_write_pipe = write_fd;
   this->sock_read_pipe = read_fd;
   close(this->sock_write_pipe[0]);
   close(this->sock_read_pipe[1]);
   pthread_mutex_init(&this->mutex_write,NULL);
-  pthread_mutex_init(&this->mutex_read,NULL);
   //创建线程
   pthread_attr_init(&attr_write);
-  pthread_attr_init(&attr_read);
   pthread_attr_setdetachstate(&attr_write, PTHREAD_CREATE_DETACHED);
-  pthread_attr_setdetachstate(&attr_read, PTHREAD_CREATE_DETACHED);
   pthread_create(&thread_write_pid,&attr_write,createPthreadSendPipeData,(void*)this);
-  pthread_create(&thread_read_pid,&attr_read,createPthreadReadPipeData,(void*)this);
   pthread_attr_destroy(&attr_write);
-  pthread_attr_destroy(&attr_read);
 }
 void* ApiServer::createPthreadSendPipeData(void *arg){
     ApiServer* ser = (ApiServer*)arg;
@@ -50,40 +45,31 @@ void* ApiServer::createPthreadSendPipeData(void *arg){
     }
     return NULL;
 }
-void* ApiServer::createPthreadReadPipeData(void *arg){
-    ApiServer* ser = (ApiServer*)arg;
-    while(true){
-        if(strcmp(ser->read_pipe_data,"\0") == 0){
-          pthread_mutex_lock(&ser->mutex_read);
-          read(ser->sock_read_pipe[0], ser->read_pipe_data, sizeof(ser->read_pipe_data));
-          pthread_mutex_unlock(&ser->mutex_read);
-          char str[SOCK_PIPE_MAXDATA];
-          memset(str,0,SOCK_PIPE_MAXDATA);
-          strcpy(str,ser->read_pipe_data);
-          ser->ReadDeviceEvent(str);
-        }
-    }
-    return NULL;
+
+void ApiServer::sendDeviceData(const char* sock_fd,const char* protocol,Json::Value *data,bool is_back){
+  Json::Value device_root;
+  Json::Value device_data;
+  device_root["is_api"] = true;
+  device_root["is_back"] = is_back;
+  device_root["protocol"] = protocol;
+  if(data == NULL){
+    device_data["sockfd"] = sock_fd;
+    device_root["data"] = device_data;
+  }else{
+    Json::Value map = *data;
+    map["sockfd"] = sock_fd;
+    device_root["data"] = map;
+  }
+  string str = device_root.toStyledString();
+  pthread_mutex_lock(&this->mutex_write);
+  memset(this->write_pipe_data,0,sizeof(this->write_pipe_data));
+  strcpy(this->write_pipe_data,str.c_str());
+  pthread_mutex_unlock(&this->mutex_write);
 }
 
-void ApiServer::resetDeviceData(){
-  pthread_mutex_lock(&this->mutex_read);
-  memset(this->read_pipe_data,0,sizeof(this->read_pipe_data));
-  pthread_mutex_unlock(&this->mutex_read);
-}
-
-void ApiServer::sendDeviceData(const char* str){
-    pthread_mutex_lock(&this->mutex_write);
-    memset(this->write_pipe_data,0,sizeof(this->write_pipe_data));
-    strcpy(this->write_pipe_data,str);
-    pthread_mutex_unlock(&this->mutex_write);
-}
-
-void ApiServer::readDeviceData(char* str){
-    pthread_mutex_lock(&this->mutex_read);
-    strcpy(str,this->read_pipe_data);
-    memset(this->read_pipe_data,0,sizeof(this->read_pipe_data));
-    pthread_mutex_unlock(&this->mutex_read);
+void ApiServer::readDeviceData(char* str,int len){
+    memset(str,0,len);
+    read(this->sock_read_pipe[0], str, len);
 }
 
 /**

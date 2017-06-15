@@ -11,17 +11,32 @@ Video.Construct = function(app){
         //mime
         var mime = {'hls':'application/x-mpegURL','rtmp':'rtmp/flv'};
         //添加菜单
-        Video.initMenu = function(){
+        Video.initVideo = function(){
             object.ready(function() {
-                $videoPanelMenu = $(".vjs-fullscreen-control");
-                //<div class="vjs-subs-caps-button vjs-menu-button vjs-menu-button-popup vjs-control vjs-button  vjs-hidden"><button class="vjs-subs-caps-button vjs-menu-button vjs-menu-button-popup vjs-button" type="button" aria-live="polite" aria-disabled="false" title="Subtitles" aria-haspopup="true" aria-expanded="false"><span aria-hidden="true" class="vjs-icon-placeholder"></span><span class="vjs-control-text">Subtitles</span></button><div class="vjs-menu"><ul class="vjs-menu-content" role="menu"><li class="vjs-menu-item vjs-texttrack-settings" tabindex="-1" role="menuitem" aria-live="polite" aria-disabled="false"><span class="vjs-menu-item-text">subtitles settings</span><span class="vjs-control-text">, opens subtitles settings dialog</span></li><li class="vjs-menu-item vjs-selected" tabindex="-1" role="menuitemcheckbox" aria-live="polite" aria-disabled="false" aria-checked="true"><span class="vjs-menu-item-text">subtitles off</span><span class="vjs-control-text">, selected</span></li></ul></div></div>  
-                $videoPanelMenu.before('<div class="vjs-subtitles-button vjs-menu-button vjs-menu-button-popup vjs-control vjs-button" tabindex="0" role="menuitem" aria-live="polite" aria-expanded="false" aria-haspopup="true">'  
-                    + '<div class="vjs-menu" role="presentation">'  
-                    + '<ul class="vjs-menu-content" role="menu">'  
-                    + '<li class="vjs-menu-item" tabindex="-1" role="menuitemcheckbox"  onclick="changeUrl(this)">高清</li>'  
-                    + '<li class="vjs-menu-item vjs-selected" tabindex="-1" role="menuitemcheckbox"  onclick="changeUrl(this)">标清 </li>'  
-                    + '</ul></div><span class="vjs-control-text">清晰度</span></div>');  
+                var menu = [{"name":"切换源","sub":[{"name":"HLS"},{"name":"RTMP"}]}];
+                Video.addMenu(menu);
             });
+        }
+        //添加菜单
+        Video.addMenu = function(data){
+            $videoPanelMenu = $(".vjs-fullscreen-control");
+            var html ='<div class="vjs-subs-caps-button vjs-menu-button vjs-menu-button-popup vjs-control vjs-button">';
+            for(var i=0;i<data.length;i++){
+                html +='<button class="vjs-subs-caps-button vjs-menu-button vjs-menu-button-popup vjs-button" type="button" aria-live="polite" title="'+data[i].name+'" aria-haspopup="true" aria-expanded="false">';
+                html += '<span  class="vjs-icon-placeholder"></span><span class="vjs-control-text">'+data[i].name+'</span></button>';
+                if(data[i].hasOwnProperty("sub")){
+                    html += '<div class="vjs-menu"><ul class="vjs-menu-content" role="menu">';
+                    for(var x=0;x<data[i].sub.length;x++){
+                        var sub = data[i].sub[x];
+                        html +='<li class="vjs-menu-item vjs-texttrack-settings" tabindex="-1" role="menuitem" aria-live="polite">';
+                        html +='<span class="vjs-menu-item-text">'+sub.name+'</span>';
+                        html +='<span class="vjs-control-text">open '+sub.name+'</span></li>';
+                    }
+                    html +='</ul></div>'
+                }
+                html +='</div>';
+            }
+            $videoPanelMenu.before(html);
         }
         //检查是否支持flash
         Video.isFlash = function(){

@@ -7,7 +7,7 @@ Control.Construct = function(app){
         $scope.url_console = Route.getRedirectUrl("index");
         $scope.nickname = User.getNickName();
         $scope.logout = User.logOut;
-        Video.initMenu();
+        Video.initVideo();
         //设置基本信息
         $http.get(GankTools.api_url+"/device/info"+"?token="+User.getToken()+"&sockfd="+Cookie.getCookie("control_sockfd")).then(function successCallback(response) {
             $scope.mem_total = response.data.data.mem_total;

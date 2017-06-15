@@ -113,15 +113,6 @@ void Device::handlerDeverInfo(Conn* &conn, Json::Value &request_data){
         recordChange.insert(make_pair("sock_fd",make_pair(MysqlHelper::DB_INT,str_fd)));
         this->mysql->updateRecord("device",recordChange,up_sql);
     }
-    //设置上线消息
-    Json::Value root;
-    Json::Value data;
-    root["protocol"] = "addMessage";
-    data["level"] = MSG_LEVEL_SYSTEM;
-    data["title"] = "设备("+name+")上线了";
-    data["content"] = "设备("+name+")上线了";
-    root["data"] = data;
-    this->sendApiData(root.toStyledString().c_str());
 }
 
 void Device::ReadApiEvent(const char *str){
@@ -130,18 +121,21 @@ void Device::ReadApiEvent(const char *str){
     string msg(str,strlen(str));
     reader.parse(msg.c_str(), data);
     string func = data["protocol"].asString();
+    bool is_back = data["is_back"].asBool();
     int sock_fd = atoi(data["data"]["sockfd"].asString().c_str());
     Conn* conn = this->getConnBaySocketFd(sock_fd);
     if(conn != NULL){
         this->call(conn,data,func);
     }else{
         this->SetDeviceOffline(sock_fd);
-        Json::Value root;
-        Json::Value data;
-        root["protocol"] = API_NOT_FIND_DEVICE;
-        root["data"] = data;
-        root["status"] = false;
-        this->sendApiData(root.toStyledString().c_str());
+        if(is_back){
+            Json::Value root;
+            Json::Value data;
+            root["protocol"] = API_NOT_FIND_DEVICE;
+            root["data"] = data;
+            root["status"] = false;
+            this->sendApiData(root.toStyledString().c_str());
+        }
     }
 }
 
@@ -151,15 +145,6 @@ void Device::SetDeviceOffline(int fd){
     string sql = "select * from device where sock_fd = "+string(str_fd);
     MysqlHelper::MysqlData dataSet = this->mysql->queryRecord(sql);
     if (dataSet.size() != 0) {
-        //添加下线消息
-        Json::Value root;
-        Json::Value data;
-        root["protocol"] = "addMessage";
-        data["level"] = MSG_LEVEL_SYSTEM;
-        data["title"] = "设备("+dataSet[0]["name"]+")下线了";
-        data["content"] = "设备("+dataSet[0]["name"]+")下线了";
-        root["data"] = data;
-        this->sendApiData(root.toStyledString().c_str());
         //更新状态
         string up_sql = "where  mac = \""+dataSet[0]["mac"]+"\"";
         MysqlHelper::RECORD_DATA recordChange;

@@ -2,37 +2,11 @@
 
 Api::Api(){
     this->initApiList();
-    this->message = new map<int,MESSAGE>;
     this->mysql = new MysqlHelper();
 }
 
 Api::~Api(){
-    delete this->message;
     delete this->mysql;
-}
-
-//添加消息
-void Api::addMessage(int level,const char* title,const char* content){
-  int index = 1;
-  if(this->message->size() > 1){
-    map<int,MESSAGE>::iterator iter = this->message->end();
-    --iter;
-    index = iter->first+1;
-  }
-  MESSAGE msg;
-  msg.title = string(title,strlen(title));
-  msg.content = string(content,strlen(content));
-  msg.level = level;
-  this->message->insert(pair<int, MESSAGE>(index, msg));
-}
-//删除消息
-void Api::delMessage(int id){
-  map<int,MESSAGE>::iterator iter;
-  for(iter=this->message->begin();iter!=this->message->end();iter++){   
-    if(id == iter->first){
-      this->message->erase(iter);
-    }
-  }
 }
 
 void Api::setConfig(const char* path){
@@ -77,7 +51,6 @@ void Api::initApiList() {
   this->api_list["device_keypress"] = &Api::device_keypress;
   this->api_list["video_push"] = &Api::video_push;
   this->api_list["video_play"] = &Api::video_play;
-  this->api_list["message_list"] = &Api::message_list;
   this->api_list["camera_power"] = &Api::camera_power;
 }
 
@@ -97,23 +70,6 @@ void Api::call(struct evhttp_request* request, const char* str) {
     (this->*(this->api_list[func]))(request);
   } else {
     evhttp_send_error(request, HTTP_BADREQUEST, 0);
-  }
-}
-
-void Api::ReadDeviceEvent(const char* str){
-  Json::Reader reader;
-  Json::Value data;
-  if(reader.parse(str, data)){
-    string func = data["protocol"].asString();
-    //添加消息
-    if(func.compare("addMessage") == 0){
-      //在ReadDeviceEvent处理时需要清空数据
-      this->resetDeviceData();
-      int level = data["data"]["level"].asInt();
-      string title = data["data"]["title"].asString();
-      string content = data["data"]["content"].asString();
-      this->addMessage(level,title.c_str(),content.c_str());
-    }
   }
 }
 
@@ -236,17 +192,10 @@ void Api::device_info(struct evhttp_request* request){
       return;
     }
     //给device发送信息
-    Json::Value device_root;
-    Json::Value device_data;
-    device_data["sockfd"] = sockfd;
-    device_root["is_api"] = true;
-    device_root["protocol"] = API_DEVICE_BASE_INFO;
-    device_root["data"] = device_data;
-    string str = device_root.toStyledString();
-    this->sendDeviceData(str.c_str());
+    this->sendDeviceData(sockfd,API_DEVICE_BASE_INFO);
     //返回数据
     char re_data[SOCK_PIPE_MAXDATA];
-    this->readDeviceData(re_data);
+    this->readDeviceData(re_data,SOCK_PIPE_MAXDATA);
     this->sendJson(request,re_data); 
   }else{
     evhttp_send_error(request, HTTP_BADREQUEST, 0);
@@ -312,17 +261,10 @@ void Api::camera_power(struct evhttp_request* request){
       return;
     }
     //给device发送信息
-    Json::Value device_root;
-    Json::Value device_data;
-    device_data["sockfd"] = sockfd;
-    device_root["is_api"] = true;
-    device_root["protocol"] = API_SET_CAMERA_POWER;
-    device_root["data"] = device_data;
-    string str = device_root.toStyledString();
-    this->sendDeviceData(str.c_str());
+    this->sendDeviceData(sockfd,API_SET_CAMERA_POWER);
     //返回数据
     char re_data[SOCK_PIPE_MAXDATA];
-    this->readDeviceData(re_data);
+    this->readDeviceData(re_data,SOCK_PIPE_MAXDATA);
     this->sendJson(request,re_data);  
   }else{
     evhttp_send_error(request, HTTP_BADREQUEST, 0);
@@ -345,54 +287,14 @@ void Api::device_keypress(struct evhttp_request* request){
       return;
     }
     //给device发送信息
-    Json::Value device_root;
     Json::Value device_data;
-    device_data["sockfd"] = sockfd;
     device_data["key"] = key;
-    device_root["is_api"] = true;
-    device_root["protocol"] = API_DEVICE_KEY_DOWN;
-    device_root["data"] = device_data;
-    string str = device_root.toStyledString();
-    this->sendDeviceData(str.c_str());
+    this->sendDeviceData(sockfd,API_DEVICE_KEY_DOWN,&device_data,false);
     //返回数据
     Json::Value root;
     root["status"] = Json::Value(true);
     string json = root.toStyledString();
     this->sendJson(request,json.c_str()); 
-  }else{
-    evhttp_send_error(request, HTTP_BADREQUEST, 0);
-  }
-}
-//获取消息列表
-void Api::message_list(struct evhttp_request* request){
-  if (evhttp_request_get_command(request) == EVHTTP_REQ_GET) {
-    const char* token = evhttp_find_header(this->getRequestHeader(),"token");
-    //判断token是否为空
-    if(token == NULL){
-      evhttp_send_error(request, 401, 0);
-      return;
-    }
-    //检查token是否合法
-    if(!this->checkToken(string(token,strlen(token)))){
-      evhttp_send_error(request, 401, 0);
-      return;
-    }
-    
-    Json::Value root;
-    Json::Value data;
-    root["status"] = Json::Value(true);
-    map<int,MESSAGE>::iterator iter;
-    for(iter=this->message->begin();iter!=this->message->end();iter++){   
-      MESSAGE msg = iter->second;
-      Json::Value node;
-      node["title"] = msg.title;
-      node["level"] = msg.level;
-      node["content"] = msg.content;
-      data.append(node);
-    }
-    root["data"] = data;
-    string json = root.toStyledString();
-    this->sendJson(request,json.c_str());  
   }else{
     evhttp_send_error(request, HTTP_BADREQUEST, 0);
   }
