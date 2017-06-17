@@ -107,7 +107,7 @@ int initArduino(){
 
 //发送串口数据
 void sendArduinoData(const char* data){
-    if(arduino_fd < 0){
+    if(arduino_fd > 0){
         write(arduino_fd, data, strlen(data)+1);
     }
 }
@@ -117,7 +117,7 @@ void readArduinoData(char* read_buf){
     int len =0; 
     char read_nBytes[10] = {0};
     bzero(read_nBytes,sizeof(read_nBytes));
-    if(arduino_fd < 0){
+    if(arduino_fd > 0){
         while((readnum = read(arduino_fd,read_nBytes,8))>0){
             len += readnum;  
             if(readnum == 8){
@@ -127,7 +127,6 @@ void readArduinoData(char* read_buf){
             if(readnum > 0 && readnum < 8){  
                 read_nBytes[readnum] = '\0';
                 strcat(read_buf,read_nBytes);
-                printf("read:%s\n",read_buf);
                 break;  
             } 
         }
@@ -255,8 +254,7 @@ void setCameraPower(struct bufferevent * bufEvent,Json::Value &data){
 //键盘按下
 void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){
     Json::Value key_map = data["data"];
-    // sendArduinoData(key_map["key"].asString().c_str());
-    sendArduinoData("hello word!!");
+    sendArduinoData(key_map["key"].asString().c_str());
     char buff[512];
     memset(buff,0,sizeof(char)*512);
     readArduinoData(buff);
