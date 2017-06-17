@@ -98,7 +98,7 @@ int initArduino(){
     //设置通信
     set_speed(fd,9600);
     //设置数据格式
-    set_Parity(fd,8,1,'N');
+    set_parity(fd,8,1,'N');
     //返回文件描述符
     return fd;
 }
