@@ -265,6 +265,7 @@ void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){
     char buff[512];
     memset(buff,0,sizeof(char)*512);
     readArduinoData(buff);
+    printf("read:%s",buff);
 }
 //获取MAC地址
 string getMacAddress(){
