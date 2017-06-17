@@ -192,6 +192,8 @@ void SmartCar::goForward(void){
     motor2.run(BACKWARD);
     motor3.run(BACKWARD);
     motor4.run(BACKWARD);
+    delay(2000);
+    this->stopMotor();
 }
 
 /**
@@ -205,6 +207,8 @@ void SmartCar::goBack(void){
     motor2.run(FORWARD);
     motor3.run(FORWARD);
     motor4.run(FORWARD);
+    delay(2000);
+    this->stopMotor();
 }
 
 /**
@@ -220,7 +224,8 @@ void SmartCar::stopMotor(void){
     motor4.run(RELEASE);
 }
 
- void SmartCar::setCarSpeed(int number){
+
+void SmartCar::setCarSpeed(int number){
     motor1.setSpeed(number);
     motor2.setSpeed(number);
     motor3.setSpeed(number);
@@ -238,6 +243,8 @@ void SmartCar::goTurnLeft(void){
     motor3.run(BACKWARD);
     motor2.run(FORWARD);
     motor4.run(FORWARD);
+    delay(2000);
+    this->stopMotor();
 }
 
 /**
@@ -251,6 +258,8 @@ void SmartCar::goTurnRight(void){
     motor4.run(BACKWARD);
     motor1.run(FORWARD);
     motor3.run(FORWARD);
+    delay(2000);
+    this->stopMotor();
 }
 
 /**
@@ -273,6 +282,28 @@ void SmartCar::cameraHTurn(int number){
 void SmartCar::cameraVTurn(int number){
     this->logs("MSG: servo Vertical move ");
     this->steeringTurn(&this->servo2,number);
+}
+
+/**
+ * 获取相机水平位置
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-04-21
+ * @param    number                           转动角度 0-180
+ */
+int SmartCar::getCameraHPos(void){
+    int current_pos = this->servo1.read();
+    return current_pos;
+}
+
+/**
+ * 获取相机上下位置
+ * @Author   DuanEnJian<backtrack843@163.com>
+ * @DateTime 2017-04-21
+ * @param    number                           转动角度 0-180
+ */
+int SmartCar::getCameraVPos(void){
+    int current_pos = this->servo2.read();
+    return current_pos;
 }
 
 /**

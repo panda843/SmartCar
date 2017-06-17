@@ -7,7 +7,7 @@
 #define _SmartCar_h_
 
 //定义日志输出
-#define IS_DEBUG true
+#define IS_DEBUG false
 //定义波特率
 #define BAUD_RATE 38400
 //定义舵机1串口
@@ -33,6 +33,8 @@ class SmartCar{
         void initSmartCar(void);
         void cameraHTurn(int number);
         void cameraVTurn(int number);
+        int getCameraHPos(void);
+        int getCameraVPos(void);
         void ultrasonicVTrun(int number);
         void goTurnLeft(void);
         void setCarSpeed(int number);

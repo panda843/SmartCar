@@ -53,7 +53,7 @@ int main(){
         exit(EXIT_FAILURE);
     }else if(pid_api == 0){
         //子进程
-        // initDaemon();
+        initDaemon();
         Api* api = new Api();
         api->setPipe(fd_writ,fd_read);
         api->setConfig(CONFIG_PATH);
@@ -68,7 +68,7 @@ int main(){
         exit(EXIT_FAILURE);
     }else if(pid_dev == 0){
         //子进程
-        // initDaemon();
+        initDaemon();
         Device* device = new Device();
         device->setPipe(fd_writ,fd_read);
         device->setConfig(CONFIG_PATH);
@@ -80,6 +80,6 @@ int main(){
     while(1){
 
     }
-    // exit(EXIT_SUCCESS);
+    exit(EXIT_SUCCESS);
     return 0;
 }
