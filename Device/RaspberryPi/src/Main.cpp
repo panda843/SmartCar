@@ -124,7 +124,7 @@ void readArduinoData(char* read_buf){
                 strcat(read_buf,read_nBytes); 
                 for(int i=0;i<10;i++){
                   if(read_nBytes[i] == '\n'){
-                    tcflush(TCIFLUSH);
+                    tcflush(arduino_fd,TCIFLUSH);
                     return;
                   }  
                 }   
@@ -132,7 +132,7 @@ void readArduinoData(char* read_buf){
             if(readnum > 1 && readnum < 8){  
                 read_nBytes[readnum] = '\0';
                 strcat(read_buf,read_nBytes);
-                tcflush(TCIFLUSH);
+                tcflush(arduino_fd,TCIFLUSH);
                 return;  
             } 
         }
