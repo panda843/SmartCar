@@ -43,7 +43,7 @@ class SmartCar{
         void goForward(void);
         void goBack(void);
         void stopMotor(void);
-        void remoteControl(void);
+        static void remoteControl(void);
         void autoRun(void);
         void setAutomatic(bool isEnable);
         void logs(const char* log);

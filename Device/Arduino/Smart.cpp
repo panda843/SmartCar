@@ -35,13 +35,15 @@ static AF_DCMotor motor3(3, MOTOR34_1KHZ);
  */
 static AF_DCMotor motor4(4, MOTOR34_1KHZ);
 
+SmartCar* _this;
+
 /**
  * 构造函数
  * @Author   DuanEnJian<backtrack843@163.com>
  * @DateTime 2017-04-21
  */
 SmartCar::SmartCar(void){
-    
+    _this = this;
 }
 
 /**
@@ -64,27 +66,22 @@ void SmartCar::logs(const char* log){
 void SmartCar::initSmartCar(void){
     //设置通信串口
     Serial.begin(BAUD_RATE);
-    this->logs("MSG: begin ok");
     //设置舵机串口
     this->servo1.attach(STEERING_ONE);
     this->servo2.attach(STEERING_TWO);
     this->servo3.attach(STEERING_THREE);
-    this->logs("MSG: servo ok");
     //设置马达转速
     motor1.setSpeed(MOTOR_SPEED);
     motor2.setSpeed(MOTOR_SPEED);
     motor3.setSpeed(MOTOR_SPEED);
     motor4.setSpeed(MOTOR_SPEED);
-    this->logs("MSG: motor ok");
     //定义超声波接口
     pinMode(ULTRASONIC_TRIG, OUTPUT);  
     pinMode(ULTRASONIC_ECHO, INPUT);
-    this->logs("MSG: ultrasonic ok");
     //定义红外线接收器
     irrecv.enableIRIn();
     //设置中断，红外遥控
-    attachInterrupt(0,(void(*)())&SmartCar::remoteControl,CHANGE);
-    this->logs("MSG: infrared ok");
+    attachInterrupt(0,&remoteControl,CHANGE);
 }
 
 /**
@@ -144,39 +141,39 @@ void SmartCar::autoRun(void){
  * @DateTime 2017-04-24
  */
 void SmartCar::remoteControl(void){
-    if(!this->is_automatic){
-        if (irrecv.decode(&this->ir_result)) {
-            Serial.println(this->ir_result.value);
-            if(this->ir_result.value == 16736925){
+    if(!_this->is_automatic){
+        if (irrecv.decode(&_this->ir_result)) {
+            Serial.println(_this->ir_result.value);
+            if(_this->ir_result.value == 16736925){
                 //Model
-                this->goForward();
-            }else if(this->ir_result.value == 16712445){
+                _this->goForward();
+            }else if(_this->ir_result.value == 16712445){
                 //快退
-                this->stopMotor();
-            }else if(this->ir_result.value == 16720605){
+                _this->stopMotor();
+            }else if(_this->ir_result.value == 16720605){
                 //播放暂停
-                this->goTurnRight();
-            }else if(this->ir_result.value == 16761405){
+                _this->goTurnRight();
+            }else if(_this->ir_result.value == 16761405){
                 //快进
-                this->goTurnLeft();
-            }else if(this->ir_result.value == 16754775){
+                _this->goTurnLeft();
+            }else if(_this->ir_result.value == 16754775){
                 //音量减
-                this->goBack();
-            }else if(this->ir_result.value == 16769055){
+                _this->goBack();
+            }else if(_this->ir_result.value == 16769055){
                 //EQ
-                int number = this->servo2.read();
+                int number = _this->servo2.read();
                 if(number < 180){
-                    this->cameraVTurn(number+10);
+                    _this->cameraVTurn(number+10);
                 }else{
-                    this->cameraVTurn(number-10);
+                    _this->cameraVTurn(number-10);
                 }
-            }else if(this->ir_result.value == 16748655){
+            }else if(_this->ir_result.value == 16748655){
                 //音量加
-                int number = this->servo1.read();
+                int number = _this->servo1.read();
                 if(number < 180){
-                    this->cameraHTurn(number+10);
+                    _this->cameraHTurn(number+10);
                 }else{
-                    this->cameraHTurn(number-10);
+                    _this->cameraHTurn(number-10);
                 }
             }
             //接受下一个值

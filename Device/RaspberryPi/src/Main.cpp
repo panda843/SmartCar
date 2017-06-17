@@ -260,10 +260,6 @@ void setCameraPower(struct bufferevent * bufEvent,Json::Value &data){
 void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){
     Json::Value key_map = data["data"];
     sendArduinoData(key_map["key"].asString().c_str());
-    char buff[512];
-    memset(buff,0,sizeof(char)*512);
-    readArduinoData(buff);
-    printf("read:%s",buff);
 }
 //获取MAC地址
 string getMacAddress(){
