@@ -1,57 +1,136 @@
 #include "Main.h"
-//初始化Arduino串口设备
+
+//设置码率
+void set_speed(int fd, int speed){
+    int speed_arr[] = {B38400, B19200, B9600, B4800, B2400, B1200, B300, B38400, B19200, B9600, B4800, B2400, B1200, B300};  
+    int name_arr[] = {38400,  19200,  9600,  4800,  2400,  1200,  300, 38400,  19200,  9600, 4800, 2400, 1200,  300, };   
+    struct termios   Opt;  
+    tcgetattr(fd, &Opt);  
+    for(int i= 0;  i < sizeof(speed_arr) / sizeof(int);  i++){  
+        if(speed == name_arr[i]){  
+            tcflush(fd, TCIOFLUSH);  
+            cfsetispeed(&Opt, speed_arr[i]);  
+            cfsetospeed(&Opt, speed_arr[i]);  
+            if(tcsetattr(fd, TCSANOW, &Opt) != 0){
+                perror("tcsetattr fd1");
+            }
+        }
+        tcflush(fd,TCIOFLUSH);    
+    }  
+}
+
+bool set_parity(int fd,int databits,int stopbits,int parity){  
+    struct termios options;  
+    if( tcgetattr( fd,&options)  !=  0){  
+        perror("SetupSerial 1");  
+        return false;  
+    }  
+    options.c_cflag &= ~CSIZE;
+    /*设置数据位数*/  
+    switch (databits){  
+        case 7:  
+            options.c_cflag |= CS7;  
+        break;  
+        case 8:  
+            options.c_cflag |= CS8;  
+        break;  
+        default:  
+            fprintf(stderr,"Unsupported data size\n");  
+            return false;  
+    }  
+    switch (parity){  
+        case 'n':  
+        case 'N':  
+            options.c_cflag &= ~PARENB;   /* Clear parity enable */  
+            options.c_iflag &= ~INPCK;     /* Enable parity checking */  
+        break;  
+        case 'o':  
+        case 'O':  
+            options.c_cflag |= (PARODD | PARENB);  /* 设置为奇效验*/   
+            options.c_iflag |= INPCK;             /* Disnable parity checking */  
+        break;  
+        case 'e':  
+        case 'E':  
+            options.c_cflag |= PARENB;     /* Enable parity */  
+            options.c_cflag &= ~PARODD;   /* 转换为偶效验*/    
+            options.c_iflag |= INPCK;       /* Disnable parity checking */  
+        break;  
+        case 'S':  
+        case 's':  /*as no parity*/  
+            options.c_cflag &= ~PARENB;  
+            options.c_cflag &= ~CSTOPB;  
+        break;  
+        default:  
+            fprintf(stderr,"Unsupported parity\n");  
+            return false;  
+    }  
+    /* 设置停止位*/     
+    switch (stopbits){  
+        case 1:  
+            options.c_cflag &= ~CSTOPB;  
+        break;  
+        case 2:  
+            options.c_cflag |= CSTOPB;  
+        break;  
+        default:  
+            fprintf(stderr,"Unsupported stop bits\n");  
+            return false;  
+    }  
+    /* Set input parity option */  
+    if(parity != 'n'){  
+        options.c_iflag |= INPCK;  
+        options.c_cc[VTIME] = 150; // 15 seconds  
+        options.c_cc[VMIN] = 0;
+    }  
+    tcflush(fd,TCIFLUSH); /* Update the options and do it NOW */  
+    if(tcsetattr(fd,TCSANOW,&options) != 0){  
+        perror("SetupSerial 3");  
+        return false;  
+    }  
+    return true;  
+ }
+
 int initArduino(){
-    //open port
-    int fd = open("/dev/ttyS0", O_RDWR|O_NOCTTY|O_NDELAY);
-    if(fd > 0){
-        perror("Arduino");
-        return fd;
+    int fd = open("/dev/ttyS0", O_RDWR );
+    if(fd < 0){
+       perror("intArduino"); 
     }
-    //set port
-    struct termios options, optionsOld;
-    //储存目前的序列埠设定
-    tcgetattr(fd, &optionsOld);
-    //清除结构体以放入新的序列埠设定值
-    bzero(&options, sizeof(options));
-    //丢弃要写入引用的对象,同时刷新收到的数据但是不读，并且刷新写入的数据但是不传送
-    tcflush(fd, TCIOFLUSH);
-    //9600波特率
-    cfsetispeed(&options, B9600);
-    cfsetospeed(&options, B9600);
-    //忽略 modem 控制线，打开接受者
-    options.c_lflag  &= ~(ICANON | ECHO | ECHOE | ISIG);
-    //原始数据输出
-    options.c_oflag  &= ~OPOST;
-    //不使用流控制,CTS(Clear To Send)和RTS(Request To Send)
-    options.c_cflag &= ~CRTSCTS;
-    options.c_cflag &= ~CNEW_RTSCTS;
-    //无奇偶校验位
-    options.c_cflag &= ~PARENB;
-    //设置等待时间和最小接收字符
-    options.c_cc[VTIME] = 150;
-    options.c_cc[VMIN] = 0;
-    //处理未接收字符
-    tcflush(fd, TCIOFLUSH);
-    //激活新配置
-    if(tcsetattr(fd,TCSANOW,&options) != 0){
-        perror("Arduino");
-        return -1;
-    }
+    //设置通信
+    set_speed(fd,9600);
+    //设置数据格式
+    set_Parity(fd,8,1,'N');
+    //返回文件描述符
     return fd;
 }
+
 //发送串口数据
 void sendArduinoData(const char* data){
     int fd = initArduino();
     if( fd < 0){
-        write(fd, data, strlen(data));
+        write(fd, data, strlen(data)+1);
         close(fd);
     }
 }
 //读取串口数据
-void readArduinoData(char* data, int len){
+void readArduinoData(char* read_buf){
     int fd = initArduino();
+    int readnum = 0;
+    int len =0; 
+    char read_nBytes[10] = {0};
+    bzero(read_nBytes,sizeof(read_nBytes));
     if(fd < 0){
-        read(fd,data,len);
+        while((readnum = read(fd,read_nBytes,8))>0){
+            len += readnum;  
+            if(readnum == 8){
+                read_nBytes[readnum] = '\0';
+                strcat(read_buf,read_nBytes);    
+            }  
+            if(readnum > 0 && readnum < 8){  
+                read_nBytes[readnum] = '\0';
+                strcat(read_buf,read_nBytes);
+                break;  
+            } 
+        }    
         close(fd);
     }
 }
@@ -177,10 +256,11 @@ void setCameraPower(struct bufferevent * bufEvent,Json::Value &data){
 //键盘按下
 void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){
     Json::Value key_map = data["data"];
-    sendArduinoData(key_map["key"].asString().c_str());
+    // sendArduinoData(key_map["key"].asString().c_str());
+    sendArduinoData("hello word!!");
     char buff[512];
     memset(buff,0,sizeof(char)*512);
-    readArduinoData(buff,sizeof(char)*512);
+    readArduinoData(buff);
     printf("read Arduino:%s\n", buff);
 }
 //获取MAC地址
