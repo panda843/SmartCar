@@ -114,7 +114,6 @@ void sendArduinoData(const char* data){
 }
 //读取串口数据
 void readArduinoData(char* read_buf){
-    usleep(10000);
     int readnum = 0;
     char read_nBytes[10] = {0};
     bzero(read_nBytes,sizeof(read_nBytes));
