@@ -30,19 +30,19 @@ void loop(){
         }else if(str.equals("105")){
             //相机上
             int pos = car.getCameraHPos();
-            car.cameraHTurn(pos-10);
+            car.cameraHTurn(pos-3);
         }else if(str.equals("106")){
             //相机左
             int pos = car.getCameraVPos();
-            car.cameraVTurn(pos+10);
+            car.cameraVTurn(pos+3);
         }else if(str.equals("107")){
             //相机下
             int pos = car.getCameraHPos();
-            car.cameraHTurn(pos+10);
+            car.cameraHTurn(pos+3);
         }else if(str.equals("108")){
             //相机右
             int pos = car.getCameraVPos();
-            car.cameraVTurn(pos-10);
+            car.cameraVTurn(pos-3);
         }else if(str.equals("32")){
             //小车停止
             car.stopMotor();

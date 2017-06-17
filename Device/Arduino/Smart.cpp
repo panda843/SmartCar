@@ -192,7 +192,7 @@ void SmartCar::goForward(void){
     motor2.run(BACKWARD);
     motor3.run(BACKWARD);
     motor4.run(BACKWARD);
-    delay(2000);
+    delay(100);
     this->stopMotor();
 }
 
@@ -207,7 +207,7 @@ void SmartCar::goBack(void){
     motor2.run(FORWARD);
     motor3.run(FORWARD);
     motor4.run(FORWARD);
-    delay(2000);
+    delay(100);
     this->stopMotor();
 }
 
@@ -243,7 +243,7 @@ void SmartCar::goTurnLeft(void){
     motor3.run(BACKWARD);
     motor2.run(FORWARD);
     motor4.run(FORWARD);
-    delay(2000);
+    delay(100);
     this->stopMotor();
 }
 
@@ -258,7 +258,7 @@ void SmartCar::goTurnRight(void){
     motor4.run(BACKWARD);
     motor1.run(FORWARD);
     motor3.run(FORWARD);
-    delay(2000);
+    delay(100);
     this->stopMotor();
 }
 
