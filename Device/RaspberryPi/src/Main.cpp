@@ -4,9 +4,10 @@
 void set_speed(int fd, int speed){
     int speed_arr[] = {B38400, B19200, B9600, B4800, B2400, B1200, B300, B38400, B19200, B9600, B4800, B2400, B1200, B300};  
     int name_arr[] = {38400,  19200,  9600,  4800,  2400,  1200,  300, 38400,  19200,  9600, 4800, 2400, 1200,  300, };   
-    struct termios   Opt;  
+    struct termios   Opt; 
+    int i; 
     tcgetattr(fd, &Opt);  
-    for(int i= 0;  i < sizeof(speed_arr) / sizeof(int);  i++){  
+    for(i= 0;  i < sizeof(speed_arr)/sizeof(int);  i++){  
         if(speed == name_arr[i]){  
             tcflush(fd, TCIOFLUSH);  
             cfsetispeed(&Opt, speed_arr[i]);  
