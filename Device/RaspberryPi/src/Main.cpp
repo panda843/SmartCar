@@ -108,6 +108,7 @@ int initArduino(){
 //发送串口数据
 void sendArduinoData(const char* data){
     if(arduino_fd > 0){
+        printf("send key:%s\n",data);
         write(arduino_fd, data, strlen(data)+1);
     }
 }
@@ -127,6 +128,7 @@ void readArduinoData(char* read_buf){
             if(readnum > 0 && readnum < 8){  
                 read_nBytes[readnum] = '\0';
                 strcat(read_buf,read_nBytes);
+                printf("read key:%s\n", read_buf);
                 break;  
             } 
         }
@@ -258,7 +260,6 @@ void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){
     char buff[512];
     memset(buff,0,sizeof(char)*512);
     readArduinoData(buff);
-    printf("read Arduino:%s\n", buff);
 }
 //获取MAC地址
 string getMacAddress(){
