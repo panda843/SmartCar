@@ -55,4 +55,6 @@ struct event_base* baseEvent;
 //API列表
 map<string,cfunc> client_api_list;
 
+int arduino_fd;
+
 #endif  

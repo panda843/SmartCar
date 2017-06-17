@@ -94,6 +94,7 @@ int initArduino(){
     int fd = open("/dev/ttyS0", O_RDWR );
     if(fd < 0){
        perror("intArduino"); 
+       exit(0);
     }
     //设置通信
     set_speed(fd,9600);
@@ -105,21 +106,18 @@ int initArduino(){
 
 //发送串口数据
 void sendArduinoData(const char* data){
-    int fd = initArduino();
-    if( fd < 0){
-        write(fd, data, strlen(data)+1);
-        close(fd);
+    if(arduino_fd < 0){
+        write(arduino_fd, data, strlen(data)+1);
     }
 }
 //读取串口数据
 void readArduinoData(char* read_buf){
-    int fd = initArduino();
     int readnum = 0;
     int len =0; 
     char read_nBytes[10] = {0};
     bzero(read_nBytes,sizeof(read_nBytes));
-    if(fd < 0){
-        while((readnum = read(fd,read_nBytes,8))>0){
+    if(arduino_fd < 0){
+        while((readnum = read(arduino_fd,read_nBytes,8))>0){
             len += readnum;  
             if(readnum == 8){
                 read_nBytes[readnum] = '\0';
@@ -130,8 +128,7 @@ void readArduinoData(char* read_buf){
                 strcat(read_buf,read_nBytes);
                 break;  
             } 
-        }    
-        close(fd);
+        }
     }
 }
 //获取摄像头状态
@@ -429,6 +426,8 @@ int main(){
     initApiList();
     //加载配置文件
     setConfig(CONFIG_PATH);
+    //加载通信串口
+    arduino_fd = initArduino();
     //启动sockt
     startRun(api_host.c_str(),api_port);
     return 0;
