@@ -98,7 +98,7 @@ int initArduino(){
        exit(0);
     }
     //设置通信
-    set_speed(fd,9600);
+    set_speed(fd,38400);
     //设置数据格式
     set_parity(fd,8,1,'N');
     //返回文件描述符
@@ -108,7 +108,6 @@ int initArduino(){
 //发送串口数据
 void sendArduinoData(const char* data){
     if(arduino_fd > 0){
-        printf("send key:%s\n",data);
         write(arduino_fd, data, strlen(data)+1);
     }
 }
@@ -260,8 +259,7 @@ void setCameraPower(struct bufferevent * bufEvent,Json::Value &data){
 //键盘按下
 void handlerKeyDown(struct bufferevent * bufEvent,Json::Value &data){
     Json::Value key_map = data["data"];
-    //sendArduinoData(key_map["key"].asString().c_str());
-    sendArduinoData("1234567\n");
+    sendArduinoData(key_map["key"].asString().c_str());
     char buff[512];
     memset(buff,0,sizeof(char)*512);
     readArduinoData(buff);
