@@ -1,5 +1,16 @@
 # SmartCar
 Raspberry Pi Zero W + Arduino Pro Mini 智能小车
+## 硬件清单
+- [x] Raspberry Pi Zero W (1)
+- [x] Arduino Pro Mini (1)
+- [x] L293D Motor Control Shield (1)
+- [x] SG90/TOWERPRO (2)
+- [x] LM2596S DC-DC降压模块 (1)
+- [x] 三角开关 (1)
+- [x] 12V 3000mAh 18650 锂电池 (1)
+- [x] Raspberry Pi Camera OV5674 500万像素 摄像头 (1)
+- [x] 32G Micro储存SD卡 (1)
+- [x] 四轮驱动智能小车底盘 (1)
 ## 设备接线
 ### L293D连接Arduino
 ```
