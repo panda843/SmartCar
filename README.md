@@ -2,6 +2,7 @@
 Raspberry Pi Zero W + Arduino Pro Mini 智能小车
 ## 设备接线
 ### L293D连接Arduino
+```
 数字端口11：直流电机#1/步进#1（PWM）
 数字端口 3：直流电机#2/步进#1（PWM）
 数字端口 5：直流电机#3/步进#2（PWM）
@@ -9,12 +10,15 @@ Raspberry Pi Zero W + Arduino Pro Mini 智能小车
 以及端口4，7，8和12。
 数字端口 9：舵机控制#2 
 数字端口 10：舵机控制#1
+```
 ![L293D连接Arduino](http://i2.buimg.com/567571/363856fc4a22e5c9.png)
 ### Arduino链接Raspberry Pi
+```
 RX  -> TX
 TX  -> RX
 VCC -> VCC
 GND -> GND
+```
 ![RaspberryPi连接Arduino](https://oscarliang.com/ctt/uploads/2013/05/arduino-raspberry-pi-serial-connect-schematics.jpg)
 ## 服务器配置
 ### 域名配置
